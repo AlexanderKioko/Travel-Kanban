@@ -2,23 +2,54 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { LayoutDashboard, CreditCard, Users, Star, Menu, X, Plane } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Animation variants for kanban cards
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: i * 0.1,
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+      },
+    }),
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Navigation Header */}
-      <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-slate-200">
+      <header className="sticky top-0 z-50 w-full bg-gradient-to-b from-white/95 to-white/70 backdrop-blur supports-[backdrop-filter]:from-white/90 supports-[backdrop-filter]:to-white/60 border-b border-slate-200/50 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-2">
               <Plane className="h-6 w-6 text-blue-600" />
-              <a href="/" className="text-xl font-bold text-slate-800 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded">
+              <a
+                href="/"
+                className="text-xl font-bold text-slate-800 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+              >
                 TripBoard
               </a>
             </div>
@@ -26,19 +57,52 @@ export default function LandingPage() {
             {/* Desktop Navigation */}
             <nav className="hidden md:block" role="navigation">
               <ul className="flex items-center space-x-8 list-none">
-                <li><a href="#features" className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1">Features</a></li>
-                <li><a href="#how-it-works" className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1">How it Works</a></li>
-                <li><a href="#reviews" className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1">Reviews</a></li>
-                <li><a href="#pricing" className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1">Pricing</a></li>
+                <li>
+                  <a
+                    href="#features"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+                  >
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#how-it-works"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+                  >
+                    How it Works
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#reviews"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+                  >
+                    Reviews
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#pricing"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+                  >
+                    Pricing
+                  </a>
+                </li>
               </ul>
             </nav>
 
             {/* Desktop Action Buttons */}
             <div className="hidden md:flex items-center space-x-4">
-              <Button variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-blue-500">
+              <Button
+                variant="outline"
+                className="border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-blue-500"
+              >
                 Sign In
               </Button>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white focus:ring-2 focus:ring-blue-500">
+              <Button
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white focus:ring-2 focus:ring-blue-500"
+              >
                 Get Started
               </Button>
             </div>
@@ -46,31 +110,68 @@ export default function LandingPage() {
             {/* Mobile Menu Button */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="md:hidden"
                   aria-controls="mobile-menu"
                   aria-expanded={mobileMenuOpen}
                   aria-label="Toggle navigation menu"
                 >
-                  {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                  {mobileMenuOpen ? (
+                    <X className="h-6 w-6" />
+                  ) : (
+                    <Menu className="h-6 w-6" />
+                  )}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" id="mobile-menu" className="w-[300px] sm:w-[400px]">
+              <SheetContent
+                side="right"
+                id="mobile-menu"
+                className="w-[300px] sm:w-[400px] bg-white"
+              >
                 <SheetHeader>
                   <SheetTitle className="text-left">Navigation</SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col space-y-4 mt-8" role="navigation">
-                  <a href="#features" className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2" onClick={() => setMobileMenuOpen(false)}>Features</a>
-                  <a href="#how-it-works" className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2" onClick={() => setMobileMenuOpen(false)}>How it Works</a>
-                  <a href="#reviews" className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2" onClick={() => setMobileMenuOpen(false)}>Reviews</a>
-                  <a href="#pricing" className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
+                  <a
+                    href="#features"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Features
+                  </a>
+                  <a
+                    href="#how-it-works"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    How it Works
+                  </a>
+                  <a
+                    href="#reviews"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Reviews
+                  </a>
+                  <a
+                    href="#pricing"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Pricing
+                  </a>
                   <div className="flex flex-col space-y-3 pt-6 border-t border-slate-200">
-                    <Button variant="outline" className="w-full border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-blue-500">
+                    <Button
+                      variant="outline"
+                      className="w-full border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-blue-500"
+                    >
                       Sign In
                     </Button>
-                    <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white focus:ring-2 focus:ring-blue-500">
+                    <Button
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white focus:ring-2 focus:ring-blue-500"
+                    >
                       Get Started
                     </Button>
                   </div>
@@ -93,12 +194,20 @@ export default function LandingPage() {
                 <p className="text-lg sm:text-xl text-slate-600 mb-8 leading-relaxed max-w-2xl">
                   Organize destinations, track budgets, and collaborate with travel companions using our beautiful kanban-style planning boards.
                 </p>
-                
+
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
-                  <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-blue-500" asChild>
+                  <Button
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-blue-500"
+                    asChild
+                  >
                     <a href="/login">Start Planning Free</a>
                   </Button>
-                  <Button size="lg" variant="secondary" className="px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-blue-500">
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-blue-500"
+                  >
                     Watch Demo
                   </Button>
                 </div>
@@ -125,52 +234,105 @@ export default function LandingPage() {
               <div className="flex justify-center lg:justify-end">
                 <div className="relative">
                   {/* Laptop Frame */}
-                  <div className="bg-slate-800 rounded-t-2xl p-6 shadow-2xl transform rotate-3 hover:rotate-1 transition-transform duration-300">
-                    <div className="bg-white rounded-lg p-4 min-h-[300px] w-[400px]">
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    transition={{ duration: 0.6 }}
+                    className="bg-slate-800 rounded-t-2xl p-6 shadow-2xl transform rotate-3 hover:rotate-1 transition-transform duration-300"
+                  >
+                    <div className="bg-white rounded-lg p-4 min-h-[320px] w-[400px] shadow-inner">
                       {/* Kanban Board */}
                       <div className="grid grid-cols-3 gap-3 h-full">
                         {/* Planning Column */}
-                        <div className="bg-slate-50 rounded-lg p-3">
-                          <h3 className="text-xs font-semibold text-slate-600 mb-3 text-center">Planning</h3>
+                        <motion.div
+                          variants={cardVariants}
+                          initial="hidden"
+                          whileInView="visible"
+                          custom={0}
+                          viewport={{ once: true }}
+                          className="bg-slate-50 rounded-lg p-3"
+                        >
+                          <h3 className="text-xs font-semibold text-slate-600 mb-3 text-center">
+                            Planning
+                          </h3>
                           <div className="space-y-2">
-                            <div className="bg-blue-100 border-l-4 border-blue-400 p-2 rounded text-xs">
+                            <motion.div
+                              initial={{ opacity: 0, x: -10 }}
+                              whileInView={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.2 }}
+                              className="bg-blue-50 border-l-4 border-blue-400 p-2 rounded text-xs shadow-sm"
+                            >
                               <div className="font-medium text-slate-800">Research Hotels</div>
-                              <div className="text-slate-600">$500 budget</div>
-                            </div>
-                            <div className="bg-yellow-100 border-l-4 border-yellow-400 p-2 rounded text-xs">
+                              <div className="text-slate-600 text-xs mt-1">$500 budget</div>
+                            </motion.div>
+                            <motion.div
+                              initial={{ opacity: 0, x: -10 }}
+                              whileInView={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.3 }}
+                              className="bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded text-xs shadow-sm"
+                            >
                               <div className="font-medium text-slate-800">Book Flights</div>
-                              <div className="text-slate-600">$800 budget</div>
-                            </div>
+                              <div className="text-slate-600 text-xs mt-1">$800 budget</div>
+                            </motion.div>
                           </div>
-                        </div>
+                        </motion.div>
 
                         {/* Booked Column */}
-                        <div className="bg-slate-50 rounded-lg p-3">
-                          <h3 className="text-xs font-semibold text-slate-600 mb-3 text-center">Booked</h3>
+                        <motion.div
+                          variants={cardVariants}
+                          initial="hidden"
+                          whileInView="visible"
+                          custom={1}
+                          viewport={{ once: true }}
+                          className="bg-slate-50 rounded-lg p-3"
+                        >
+                          <h3 className="text-xs font-semibold text-slate-600 mb-3 text-center">
+                            Booked
+                          </h3>
                           <div className="space-y-2">
-                            <div className="bg-purple-100 border-l-4 border-purple-400 p-2 rounded text-xs">
+                            <motion.div
+                              initial={{ opacity: 0, x: -10 }}
+                              whileInView={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.4 }}
+                              className="bg-purple-50 border-l-4 border-purple-400 p-2 rounded text-xs shadow-sm"
+                            >
                               <div className="font-medium text-slate-800">Airport Transfer</div>
-                              <div className="text-slate-600">$50 paid</div>
-                            </div>
+                              <div className="text-slate-600 text-xs mt-1">$50 paid</div>
+                            </motion.div>
                           </div>
-                        </div>
+                        </motion.div>
 
                         {/* Completed Column */}
-                        <div className="bg-slate-50 rounded-lg p-3">
-                          <h3 className="text-xs font-semibold text-slate-600 mb-3 text-center">Completed</h3>
+                        <motion.div
+                          variants={cardVariants}
+                          initial="hidden"
+                          whileInView="visible"
+                          custom={2}
+                          viewport={{ once: true }}
+                          className="bg-slate-50 rounded-lg p-3"
+                        >
+                          <h3 className="text-xs font-semibold text-slate-600 mb-3 text-center">
+                            Completed
+                          </h3>
                           <div className="space-y-2">
-                            <div className="bg-green-100 border-l-4 border-green-400 p-2 rounded text-xs">
+                            <motion.div
+                              initial={{ opacity: 0, x: -10 }}
+                              whileInView={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.5 }}
+                              className="bg-green-50 border-l-4 border-green-400 p-2 rounded text-xs shadow-sm flex flex-col"
+                            >
                               <div className="font-medium text-slate-800">Get Passport</div>
-                              <div className="text-slate-600 flex items-center gap-1">
+                              <div className="text-slate-600 flex items-center gap-1 text-xs mt-1">
                                 <Star className="h-3 w-3 fill-green-500 text-green-500" />
                                 Done
                               </div>
-                            </div>
+                            </motion.div>
                           </div>
-                        </div>
+                        </motion.div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                   {/* Laptop Base */}
                   <div className="bg-slate-700 h-6 rounded-b-2xl transform rotate-3 hover:rotate-1 transition-transform duration-300 shadow-lg"></div>
                 </div>
@@ -245,9 +407,15 @@ export default function LandingPage() {
 
             <div className="grid lg:grid-cols-3 gap-12">
               <div className="text-center group">
-                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                  className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300"
+                >
                   1
-                </div>
+                </motion.div>
                 <h3 className="text-xl font-bold text-slate-800 mb-4">Create Your Board</h3>
                 <p className="text-slate-600 leading-relaxed">
                   Start with a template or a custom board for your trip.
@@ -255,9 +423,15 @@ export default function LandingPage() {
               </div>
 
               <div className="text-center group">
-                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-green-600 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
+                  className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-green-600 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300"
+                >
                   2
-                </div>
+                </motion.div>
                 <h3 className="text-xl font-bold text-slate-800 mb-4">Add Your Tasks</h3>
                 <p className="text-slate-600 leading-relaxed">
                   Break down your trip into manageable tasks with budgets and due dates.
@@ -265,9 +439,15 @@ export default function LandingPage() {
               </div>
 
               <div className="text-center group">
-                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
+                  className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300"
+                >
                   3
-                </div>
+                </motion.div>
                 <h3 className="text-xl font-bold text-slate-800 mb-4">Track Progress</h3>
                 <p className="text-slate-600 leading-relaxed">
                   Move tasks through your workflow as you complete them.
@@ -284,13 +464,13 @@ export default function LandingPage() {
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-8">
                 Loved by Travelers Worldwide
               </h2>
-              
+
               {/* Metric Badges */}
               <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-semibold">
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-semibold shadow-md">
                   50K+ Trips Planned
                 </div>
-                <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-3 rounded-full font-semibold">
+                <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-3 rounded-full font-semibold shadow-md">
                   99.9% Uptime
                 </div>
               </div>
@@ -301,7 +481,10 @@ export default function LandingPage() {
                 <CardHeader>
                   <div className="flex items-center gap-1 mb-2">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <Star
+                        key={i}
+                        className="h-4 w-4 fill-yellow-400 text-yellow-400"
+                      />
                     ))}
                   </div>
                   <CardDescription className="text-slate-600 leading-relaxed">
@@ -318,7 +501,10 @@ export default function LandingPage() {
                 <CardHeader>
                   <div className="flex items-center gap-1 mb-2">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <Star
+                        key={i}
+                        className="h-4 w-4 fill-yellow-400 text-yellow-400"
+                      />
                     ))}
                   </div>
                   <CardDescription className="text-slate-600 leading-relaxed">
@@ -335,7 +521,10 @@ export default function LandingPage() {
                 <CardHeader>
                   <div className="flex items-center gap-1 mb-2">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <Star
+                        key={i}
+                        className="h-4 w-4 fill-yellow-400 text-yellow-400"
+                      />
                     ))}
                   </div>
                   <CardDescription className="text-slate-600 leading-relaxed">
@@ -361,10 +550,19 @@ export default function LandingPage() {
               Join thousands of travelers who trust TripBoard to organize their perfect trips.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600" asChild>
+              <Button
+                size="lg"
+                variant="secondary"
+                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600"
+                asChild
+              >
                 <a href="/login">Start Free Trial</a>
               </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600"
+              >
                 Watch Demo
               </Button>
             </div>
@@ -391,14 +589,54 @@ export default function LandingPage() {
             <div className="space-y-4">
               <h3 className="font-semibold text-white">Product</h3>
               <div className="space-y-2 text-sm">
-                <a href="#features" className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded">Features</a>
-                <a href="#pricing" className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded">Pricing</a>
-                <a href="/templates" className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded">Templates</a>
-                <a href="/mobile" className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded">Mobile App</a>
-                <a href="/about" className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded">About</a>
-                <a href="/blog" className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded">Blog</a>
-                <a href="/careers" className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded">Careers</a>
-                <a href="/contact" className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded">Contact</a>
+                <a
+                  href="#features"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                >
+                  Features
+                </a>
+                <a
+                  href="#pricing"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                >
+                  Pricing
+                </a>
+                <a
+                  href="/templates"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                >
+                  Templates
+                </a>
+                <a
+                  href="/mobile"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                >
+                  Mobile App
+                </a>
+                <a
+                  href="/about"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                >
+                  About
+                </a>
+                <a
+                  href="/blog"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                >
+                  Blog
+                </a>
+                <a
+                  href="/careers"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                >
+                  Careers
+                </a>
+                <a
+                  href="/contact"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                >
+                  Contact
+                </a>
               </div>
             </div>
 
@@ -406,10 +644,30 @@ export default function LandingPage() {
             <div className="space-y-4">
               <h3 className="font-semibold text-white">Support</h3>
               <div className="space-y-2 text-sm">
-                <a href="/help" className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded">Help Center</a>
-                <a href="/privacy" className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded">Privacy Policy</a>
-                <a href="/terms" className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded">Terms of Service</a>
-                <a href="/status" className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded">Status</a>
+                <a
+                  href="/help"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                >
+                  Help Center
+                </a>
+                <a
+                  href="/privacy"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                >
+                  Privacy Policy
+                </a>
+                <a
+                  href="/terms"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                >
+                  Terms of Service
+                </a>
+                <a
+                  href="/status"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                >
+                  Status
+                </a>
               </div>
             </div>
           </div>
