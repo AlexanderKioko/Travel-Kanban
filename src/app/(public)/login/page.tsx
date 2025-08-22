@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Plane, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,6 +13,7 @@ const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({ email: "", password: "" });
+  const router = useRouter();
 
   const validateForm = () => {
     const newErrors = { email: "", password: "" };
@@ -39,6 +41,10 @@ const LoginForm = () => {
       // Handle login logic here
       alert("Login successful! (This is a demo)");
     }
+  };
+
+  const handleNavigateToRegister = () => {
+    router.push('/register');
   };
 
   return (
@@ -133,9 +139,14 @@ const LoginForm = () => {
 };
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const handleBackToHome = () => {
-    // In a real app, you would use router.push('/') or navigate to home
-    console.log("Navigating back to home");
+    router.push('/');
+  };
+
+  const handleNavigateToRegister = () => {
+    router.push('/register');
   };
 
   return (
@@ -254,12 +265,12 @@ export default function LoginPage() {
               <div className="text-center pt-6 border-t border-slate-100">
                 <p className="text-sm text-slate-600">
                   New to TripBoard?{" "}
-                  <a
-                    href="#"
-                    className="text-blue-600 hover:text-blue-500 font-semibold transition-colors hover:underline"
+                  <button
+                    onClick={handleNavigateToRegister}
+                    className="text-blue-600 hover:text-blue-500 font-semibold transition-colors hover:underline bg-transparent border-none cursor-pointer"
                   >
                     Create your free account
-                  </a>
+                  </button>
                 </p>
               </div>
             </CardContent>
