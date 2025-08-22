@@ -30,7 +30,7 @@ export default function LandingPage() {
       y: 0,
       transition: {
         delay: i * 0.1,
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100,
         damping: 15,
       },
@@ -246,10 +246,10 @@ export default function LandingPage() {
                       <div className="grid grid-cols-3 gap-3 h-full">
                         {/* Planning Column */}
                         <motion.div
+                          custom={0}
                           variants={cardVariants}
                           initial="hidden"
                           whileInView="visible"
-                          custom={0}
                           viewport={{ once: true }}
                           className="bg-slate-50 rounded-lg p-3"
                         >
@@ -280,10 +280,10 @@ export default function LandingPage() {
 
                         {/* Booked Column */}
                         <motion.div
+                          custom={1}
                           variants={cardVariants}
                           initial="hidden"
                           whileInView="visible"
-                          custom={1}
                           viewport={{ once: true }}
                           className="bg-slate-50 rounded-lg p-3"
                         >
@@ -305,10 +305,10 @@ export default function LandingPage() {
 
                         {/* Completed Column */}
                         <motion.div
+                          custom={2}
                           variants={cardVariants}
                           initial="hidden"
                           whileInView="visible"
-                          custom={2}
                           viewport={{ once: true }}
                           className="bg-slate-50 rounded-lg p-3"
                         >
