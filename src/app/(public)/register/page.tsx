@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Plane, Eye, EyeOff, ArrowLeft, User, Mail, Lock } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +20,7 @@ const RegisterForm = () => {
     password: "", 
     confirmPassword: "" 
   });
+  const router = useRouter();
 
   const validateForm = () => {
     const newErrors = { name: "", email: "", password: "", confirmPassword: "" };
@@ -128,7 +130,7 @@ const RegisterForm = () => {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
             >
               {showPassword ? (
                 <EyeOff className="h-4 w-4" />
@@ -162,7 +164,7 @@ const RegisterForm = () => {
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
             >
               {showConfirmPassword ? (
                 <EyeOff className="h-4 w-4" />
@@ -179,7 +181,7 @@ const RegisterForm = () => {
 
       <Button
         onClick={handleSubmit}
-        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-base font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-base font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] cursor-pointer"
       >
         Create Your Free Account
       </Button>
@@ -188,8 +190,14 @@ const RegisterForm = () => {
 };
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const handleBackToHome = () => {
-    console.log("Navigating back to home");
+    router.push('/');
+  };
+
+  const handleNavigateToLogin = () => {
+    router.push('/login');
   };
 
   return (
@@ -221,7 +229,7 @@ export default function RegisterPage() {
         <Button
           variant="ghost"
           onClick={handleBackToHome}
-          className="text-slate-600 hover:text-slate-800 hover:bg-white/60 backdrop-blur-sm transition-all duration-200 border border-white/30 shadow-sm"
+          className="text-slate-600 hover:text-slate-800 hover:bg-white/60 backdrop-blur-sm transition-all duration-200 border border-white/30 shadow-sm cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Home
@@ -271,7 +279,7 @@ export default function RegisterPage() {
               <div className="grid grid-cols-2 gap-4">
                 <Button
                   variant="outline"
-                  className="w-full border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 py-3"
+                  className="w-full border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 py-3 cursor-pointer"
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                     <path
@@ -295,7 +303,7 @@ export default function RegisterPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 py-3"
+                  className="w-full border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 py-3 cursor-pointer"
                 >
                   <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -308,12 +316,12 @@ export default function RegisterPage() {
               <div className="text-center pt-6 border-t border-slate-100">
                 <p className="text-sm text-slate-600">
                   Already have an account?{" "}
-                  <a
-                    href="/login"
-                    className="text-blue-600 hover:text-blue-500 font-semibold transition-colors hover:underline"
+                  <button
+                    onClick={handleNavigateToLogin}
+                    className="text-blue-600 hover:text-blue-500 font-semibold transition-colors hover:underline bg-transparent border-none cursor-pointer"
                   >
                     Sign in
-                  </a>
+                  </button>
                 </p>
               </div>
             </CardContent>
@@ -339,11 +347,11 @@ export default function RegisterPage() {
           <div className="text-center mt-8 text-xs text-slate-500 space-y-2">
             <p>
               By creating an account, you agree to our{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-500 transition-colors hover:underline">
+              <a href="#" className="text-blue-600 hover:text-blue-500 transition-colors hover:underline cursor-pointer">
                 Terms of Service
               </a>{" "}
               and{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-500 transition-colors hover:underline">
+              <a href="#" className="text-blue-600 hover:text-blue-500 transition-colors hover:underline cursor-pointer">
                 Privacy Policy
               </a>
             </p>
