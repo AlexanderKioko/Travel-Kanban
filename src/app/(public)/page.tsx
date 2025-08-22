@@ -17,24 +17,19 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { LayoutDashboard, CreditCard, Users, Star, Menu, X, Plane } from "lucide-react";
-import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
 
-  // Animation variants for kanban cards
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: i * 0.1,
-        type: "spring" as const,
-        stiffness: 100,
-        damping: 15,
-      },
-    }),
+  // Navigation handlers
+  const handleLoginNavigation = () => {
+    router.push('/login');
+  };
+
+  const handleRegisterNavigation = () => {
+    router.push('/register');
   };
 
   return (
@@ -96,11 +91,13 @@ export default function LandingPage() {
             <div className="hidden md:flex items-center space-x-4">
               <Button
                 variant="outline"
+                onClick={handleLoginNavigation}
                 className="border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-blue-500"
               >
                 Sign In
               </Button>
               <Button
+                onClick={handleRegisterNavigation}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white focus:ring-2 focus:ring-blue-500"
               >
                 Get Started
@@ -165,11 +162,19 @@ export default function LandingPage() {
                   <div className="flex flex-col space-y-3 pt-6 border-t border-slate-200">
                     <Button
                       variant="outline"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleLoginNavigation();
+                      }}
                       className="w-full border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-blue-500"
                     >
                       Sign In
                     </Button>
                     <Button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleRegisterNavigation();
+                      }}
                       className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white focus:ring-2 focus:ring-blue-500"
                     >
                       Get Started
@@ -198,10 +203,10 @@ export default function LandingPage() {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
                   <Button
                     size="lg"
+                    onClick={handleRegisterNavigation}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-blue-500"
-                    asChild
                   >
-                    <a href="/login">Start Planning Free</a>
+                    Start Planning Free
                   </Button>
                   <Button
                     size="lg"
@@ -234,105 +239,58 @@ export default function LandingPage() {
               <div className="flex justify-center lg:justify-end">
                 <div className="relative">
                   {/* Laptop Frame */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.6 }}
-                    className="bg-slate-800 rounded-t-2xl p-6 shadow-2xl transform rotate-3 hover:rotate-1 transition-transform duration-300"
-                  >
+                  <div className="bg-slate-800 rounded-t-2xl p-6 shadow-2xl transform rotate-3 hover:rotate-1 transition-transform duration-300">
                     <div className="bg-white rounded-lg p-4 min-h-[320px] w-[400px] shadow-inner">
                       {/* Kanban Board */}
                       <div className="grid grid-cols-3 gap-3 h-full">
                         {/* Planning Column */}
-                        <motion.div
-                          custom={0}
-                          variants={cardVariants}
-                          initial="hidden"
-                          whileInView="visible"
-                          viewport={{ once: true }}
-                          className="bg-slate-50 rounded-lg p-3"
-                        >
+                        <div className="bg-slate-50 rounded-lg p-3">
                           <h3 className="text-xs font-semibold text-slate-600 mb-3 text-center">
                             Planning
                           </h3>
                           <div className="space-y-2">
-                            <motion.div
-                              initial={{ opacity: 0, x: -10 }}
-                              whileInView={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.2 }}
-                              className="bg-blue-50 border-l-4 border-blue-400 p-2 rounded text-xs shadow-sm"
-                            >
+                            <div className="bg-blue-50 border-l-4 border-blue-400 p-2 rounded text-xs shadow-sm">
                               <div className="font-medium text-slate-800">Research Hotels</div>
                               <div className="text-slate-600 text-xs mt-1">$500 budget</div>
-                            </motion.div>
-                            <motion.div
-                              initial={{ opacity: 0, x: -10 }}
-                              whileInView={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.3 }}
-                              className="bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded text-xs shadow-sm"
-                            >
+                            </div>
+                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded text-xs shadow-sm">
                               <div className="font-medium text-slate-800">Book Flights</div>
                               <div className="text-slate-600 text-xs mt-1">$800 budget</div>
-                            </motion.div>
+                            </div>
                           </div>
-                        </motion.div>
+                        </div>
 
                         {/* Booked Column */}
-                        <motion.div
-                          custom={1}
-                          variants={cardVariants}
-                          initial="hidden"
-                          whileInView="visible"
-                          viewport={{ once: true }}
-                          className="bg-slate-50 rounded-lg p-3"
-                        >
+                        <div className="bg-slate-50 rounded-lg p-3">
                           <h3 className="text-xs font-semibold text-slate-600 mb-3 text-center">
                             Booked
                           </h3>
                           <div className="space-y-2">
-                            <motion.div
-                              initial={{ opacity: 0, x: -10 }}
-                              whileInView={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.4 }}
-                              className="bg-purple-50 border-l-4 border-purple-400 p-2 rounded text-xs shadow-sm"
-                            >
+                            <div className="bg-purple-50 border-l-4 border-purple-400 p-2 rounded text-xs shadow-sm">
                               <div className="font-medium text-slate-800">Airport Transfer</div>
                               <div className="text-slate-600 text-xs mt-1">$50 paid</div>
-                            </motion.div>
+                            </div>
                           </div>
-                        </motion.div>
+                        </div>
 
                         {/* Completed Column */}
-                        <motion.div
-                          custom={2}
-                          variants={cardVariants}
-                          initial="hidden"
-                          whileInView="visible"
-                          viewport={{ once: true }}
-                          className="bg-slate-50 rounded-lg p-3"
-                        >
+                        <div className="bg-slate-50 rounded-lg p-3">
                           <h3 className="text-xs font-semibold text-slate-600 mb-3 text-center">
                             Completed
                           </h3>
                           <div className="space-y-2">
-                            <motion.div
-                              initial={{ opacity: 0, x: -10 }}
-                              whileInView={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.5 }}
-                              className="bg-green-50 border-l-4 border-green-400 p-2 rounded text-xs shadow-sm flex flex-col"
-                            >
+                            <div className="bg-green-50 border-l-4 border-green-400 p-2 rounded text-xs shadow-sm flex flex-col">
                               <div className="font-medium text-slate-800">Get Passport</div>
                               <div className="text-slate-600 flex items-center gap-1 text-xs mt-1">
                                 <Star className="h-3 w-3 fill-green-500 text-green-500" />
                                 Done
                               </div>
-                            </motion.div>
+                            </div>
                           </div>
-                        </motion.div>
+                        </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                   {/* Laptop Base */}
                   <div className="bg-slate-700 h-6 rounded-b-2xl transform rotate-3 hover:rotate-1 transition-transform duration-300 shadow-lg"></div>
                 </div>
@@ -407,15 +365,9 @@ export default function LandingPage() {
 
             <div className="grid lg:grid-cols-3 gap-12">
               <div className="text-center group">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  whileInView={{ scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                  className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300"
-                >
+                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
                   1
-                </motion.div>
+                </div>
                 <h3 className="text-xl font-bold text-slate-800 mb-4">Create Your Board</h3>
                 <p className="text-slate-600 leading-relaxed">
                   Start with a template or a custom board for your trip.
@@ -423,15 +375,9 @@ export default function LandingPage() {
               </div>
 
               <div className="text-center group">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  whileInView={{ scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-                  className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-green-600 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300"
-                >
+                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-green-600 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
                   2
-                </motion.div>
+                </div>
                 <h3 className="text-xl font-bold text-slate-800 mb-4">Add Your Tasks</h3>
                 <p className="text-slate-600 leading-relaxed">
                   Break down your trip into manageable tasks with budgets and due dates.
@@ -439,15 +385,9 @@ export default function LandingPage() {
               </div>
 
               <div className="text-center group">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  whileInView={{ scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-                  className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300"
-                >
+                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
                   3
-                </motion.div>
+                </div>
                 <h3 className="text-xl font-bold text-slate-800 mb-4">Track Progress</h3>
                 <p className="text-slate-600 leading-relaxed">
                   Move tasks through your workflow as you complete them.
@@ -553,10 +493,10 @@ export default function LandingPage() {
               <Button
                 size="lg"
                 variant="secondary"
+                onClick={handleRegisterNavigation}
                 className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600"
-                asChild
               >
-                <a href="/login">Start Free Trial</a>
+                Start Free Trial
               </Button>
               <Button
                 size="lg"
@@ -612,30 +552,6 @@ export default function LandingPage() {
                   className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
                 >
                   Mobile App
-                </a>
-                <a
-                  href="/about"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
-                >
-                  About
-                </a>
-                <a
-                  href="/blog"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
-                >
-                  Blog
-                </a>
-                <a
-                  href="/careers"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
-                >
-                  Careers
-                </a>
-                <a
-                  href="/contact"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
-                >
-                  Contact
                 </a>
               </div>
             </div>
