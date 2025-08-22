@@ -43,7 +43,7 @@ export default function LandingPage() {
               <Plane className="h-6 w-6 text-blue-600" />
               <a
                 href="/"
-                className="text-xl font-bold text-slate-800 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                className="text-xl font-bold text-slate-800 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded cursor-pointer"
               >
                 TripBoard
               </a>
@@ -55,7 +55,7 @@ export default function LandingPage() {
                 <li>
                   <a
                     href="#features"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1 cursor-pointer"
                   >
                     Features
                   </a>
@@ -63,7 +63,7 @@ export default function LandingPage() {
                 <li>
                   <a
                     href="#how-it-works"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1 cursor-pointer"
                   >
                     How it Works
                   </a>
@@ -71,7 +71,7 @@ export default function LandingPage() {
                 <li>
                   <a
                     href="#reviews"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1 cursor-pointer"
                   >
                     Reviews
                   </a>
@@ -79,7 +79,7 @@ export default function LandingPage() {
                 <li>
                   <a
                     href="#pricing"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1 cursor-pointer"
                   >
                     Pricing
                   </a>
@@ -92,13 +92,13 @@ export default function LandingPage() {
               <Button
                 variant="outline"
                 onClick={handleLoginNavigation}
-                className="border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-blue-500"
+                className="border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
                 Sign In
               </Button>
               <Button
                 onClick={handleRegisterNavigation}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white focus:ring-2 focus:ring-blue-500"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
                 Get Started
               </Button>
@@ -110,15 +110,15 @@ export default function LandingPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="md:hidden"
+                  className="md:hidden cursor-pointer"
                   aria-controls="mobile-menu"
                   aria-expanded={mobileMenuOpen}
                   aria-label="Toggle navigation menu"
                 >
                   {mobileMenuOpen ? (
-                    <X className="h-6 w-6" />
+                    <X className="h-6 w-6 cursor-pointer" />
                   ) : (
-                    <Menu className="h-6 w-6" />
+                    <Menu className="h-6 w-6 cursor-pointer" />
                   )}
                 </Button>
               </SheetTrigger>
@@ -133,28 +133,28 @@ export default function LandingPage() {
                 <nav className="flex flex-col space-y-4 mt-8" role="navigation">
                   <a
                     href="#features"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2 cursor-pointer"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Features
                   </a>
                   <a
                     href="#how-it-works"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2 cursor-pointer"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     How it Works
                   </a>
                   <a
                     href="#reviews"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2 cursor-pointer"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Reviews
                   </a>
                   <a
                     href="#pricing"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2"
+                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2 cursor-pointer"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Pricing
@@ -166,7 +166,7 @@ export default function LandingPage() {
                         setMobileMenuOpen(false);
                         handleLoginNavigation();
                       }}
-                      className="w-full border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-blue-500"
+                      className="w-full border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     >
                       Sign In
                     </Button>
@@ -175,7 +175,7 @@ export default function LandingPage() {
                         setMobileMenuOpen(false);
                         handleRegisterNavigation();
                       }}
-                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white focus:ring-2 focus:ring-blue-500"
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     >
                       Get Started
                     </Button>
@@ -204,14 +204,14 @@ export default function LandingPage() {
                   <Button
                     size="lg"
                     onClick={handleRegisterNavigation}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-blue-500"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-blue-500 cursor-pointer"
                   >
                     Start Planning Free
                   </Button>
                   <Button
                     size="lg"
                     variant="secondary"
-                    className="px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-blue-500"
+                    className="px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-blue-500 cursor-pointer"
                   >
                     Watch Demo
                   </Button>
@@ -309,7 +309,7 @@ export default function LandingPage() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group">
+              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group cursor-pointer">
                 <CardHeader className="text-center">
                   <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <LayoutDashboard className="h-8 w-8 text-white" />
@@ -323,7 +323,7 @@ export default function LandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group">
+              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group cursor-pointer">
                 <CardHeader className="text-center">
                   <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <CreditCard className="h-8 w-8 text-white" />
@@ -337,7 +337,7 @@ export default function LandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group md:col-span-2 lg:col-span-1">
+              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group md:col-span-2 lg:col-span-1 cursor-pointer">
                 <CardHeader className="text-center">
                   <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Users className="h-8 w-8 text-white" />
@@ -364,7 +364,7 @@ export default function LandingPage() {
             </div>
 
             <div className="grid lg:grid-cols-3 gap-12">
-              <div className="text-center group">
+              <div className="text-center group cursor-pointer">
                 <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
                   1
                 </div>
@@ -374,7 +374,7 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              <div className="text-center group">
+              <div className="text-center group cursor-pointer">
                 <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-green-600 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
                   2
                 </div>
@@ -384,7 +384,7 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              <div className="text-center group">
+              <div className="text-center group cursor-pointer">
                 <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
                   3
                 </div>
@@ -407,17 +407,17 @@ export default function LandingPage() {
 
               {/* Metric Badges */}
               <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-semibold shadow-md">
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-semibold shadow-md cursor-pointer">
                   50K+ Trips Planned
                 </div>
-                <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-3 rounded-full font-semibold shadow-md">
+                <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-3 rounded-full font-semibold shadow-md cursor-pointer">
                   99.9% Uptime
                 </div>
               </div>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
-              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
+              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer">
                 <CardHeader>
                   <div className="flex items-center gap-1 mb-2">
                     {[...Array(5)].map((_, i) => (
@@ -437,7 +437,7 @@ export default function LandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
+              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer">
                 <CardHeader>
                   <div className="flex items-center gap-1 mb-2">
                     {[...Array(5)].map((_, i) => (
@@ -457,7 +457,7 @@ export default function LandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
+              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer">
                 <CardHeader>
                   <div className="flex items-center gap-1 mb-2">
                     {[...Array(5)].map((_, i) => (
@@ -494,14 +494,14 @@ export default function LandingPage() {
                 size="lg"
                 variant="secondary"
                 onClick={handleRegisterNavigation}
-                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600"
+                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 cursor-pointer"
               >
                 Start Free Trial
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600"
+                className="border-white text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 cursor-pointer"
               >
                 Watch Demo
               </Button>
@@ -531,25 +531,25 @@ export default function LandingPage() {
               <div className="space-y-2 text-sm">
                 <a
                   href="#features"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
                 >
                   Features
                 </a>
                 <a
                   href="#pricing"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
                 >
                   Pricing
                 </a>
                 <a
                   href="/templates"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
                 >
                   Templates
                 </a>
                 <a
                   href="/mobile"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
                 >
                   Mobile App
                 </a>
@@ -562,25 +562,25 @@ export default function LandingPage() {
               <div className="space-y-2 text-sm">
                 <a
                   href="/help"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
                 >
                   Help Center
                 </a>
                 <a
                   href="/privacy"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
                 >
                   Privacy Policy
                 </a>
                 <a
                   href="/terms"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
                 >
                   Terms of Service
                 </a>
                 <a
                   href="/status"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded"
+                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
                 >
                   Status
                 </a>
