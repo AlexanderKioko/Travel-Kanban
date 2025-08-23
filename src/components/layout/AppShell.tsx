@@ -1,3 +1,4 @@
+// src/components/layout/AppShell.tsx
 "use client";
 
 import { useEffect } from "react";
@@ -15,91 +16,98 @@ export function AppShell({ children }: AppShellProps) {
   const { sidebarOpen, isMobile, setIsMobile, setSidebarOpen } = useUI();
   const { user } = useSession();
 
-  // Handle responsive behavior
+  // Handle responsive behavior using window.matchMedia
   useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768; // md breakpoint
+    const mediaQuery = window.matchMedia("(max-width: 768px)"); // Tailwind's md breakpoint
+
+    const handleResize = (e: MediaQueryListEvent | MediaQueryList) => {
+      const mobile = e.matches;
       setIsMobile(mobile);
+
+      // Auto-close sidebar on mobile, keep open on desktop
+      if (mobile) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
     };
 
-    // Check on mount
-    checkMobile();
+    // Initialize
+    handleResize(mediaQuery);
 
-    // Listen for resize
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, [setIsMobile]);
+    // Listen for changes
+    mediaQuery.addEventListener("change", handleResize);
+    return () => mediaQuery.removeEventListener("change", handleResize);
+  }, [setIsMobile, setSidebarOpen]);
 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
-    if (!isMobile) return;
+    if (!isMobile || !sidebarOpen) return;
 
     const handleClickOutside = (event: MouseEvent) => {
-      const sidebar = document.getElementById('sidebar');
-      const menuButton = document.getElementById('menu-button');
-      
+      const sidebar = document.getElementById("sidebar");
+      const menuButton = document.getElementById("menu-button");
+
       if (
-        sidebarOpen &&
         sidebar &&
-        !sidebar.contains(event.target as Node) &&
         menuButton &&
+        !sidebar.contains(event.target as Node) &&
         !menuButton.contains(event.target as Node)
       ) {
         setSidebarOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [sidebarOpen, isMobile, setSidebarOpen]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMobile, sidebarOpen, setSidebarOpen]);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Top Navigation */}
       <Navbar user={user} />
-      
+
       {/* Mobile Overlay */}
       {isMobile && sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-20 bg-black/50 md:hidden"
           onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
-      
-      {/* Main Layout Container */}
+
+      {/* Main Layout */}
       <div className="flex h-[calc(100vh-4rem)]">
         {/* Sidebar */}
         <aside
           id="sidebar"
           className={cn(
-            "fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-64 transform border-r bg-card transition-transform duration-300 ease-in-out md:relative md:top-0 md:z-0 md:translate-x-0",
-            // Mobile behavior
+            "fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] border-r bg-card transition-all duration-300 ease-in-out",
+            // Mobile: slide in/out
             isMobile
               ? sidebarOpen
-                ? "translate-x-0"
-                : "-translate-x-full"
-              : // Desktop behavior
+                ? "translate-x-0 w-64"
+                : "-translate-x-full w-64"
+              : // Desktop: collapse width
                 sidebarOpen
-                ? "md:w-64"
-                : "md:w-16"
+                ? "w-64"
+                : "w-16"
           )}
+          role="navigation"
+          aria-label="Main Sidebar"
         >
           <Sidebar isCollapsed={!sidebarOpen && !isMobile} />
         </aside>
 
-        {/* Main Content Area */}
-        <main 
+        {/* Main Content */}
+        <main
           className={cn(
             "flex-1 overflow-auto transition-all duration-300 ease-in-out",
-            // Adjust margin on mobile when sidebar is open
-            isMobile && sidebarOpen ? "md:ml-0" : "",
-            // Adjust on desktop based on sidebar state
-            !isMobile && !sidebarOpen ? "md:ml-16" : "md:ml-0"
+            // On desktop: shift content when sidebar is collapsed
+            !isMobile && !sidebarOpen ? "ml-16" : "ml-0"
           )}
         >
-          <div className="h-full">
-            {children}
-          </div>
+          <div className="h-full">{children}</div>
         </main>
       </div>
     </div>
