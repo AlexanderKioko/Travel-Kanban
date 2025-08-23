@@ -1,4 +1,3 @@
-// src/components/layout/Navbar.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ import {
 import { useTheme } from "next-themes";
 import { useUI } from "@/store/useUI";
 import { useSession, type User } from "@/store/useSession";
-import { useLogout } from "@/features/auth/hooks"; // Make sure path is correct
+import { useLogout } from "@/features/auth/hooks"; 
 import {
   Menu,
   Sun,
@@ -36,14 +35,14 @@ interface NavbarProps {
 export function Navbar({ user }: NavbarProps) {
   const { theme, setTheme } = useTheme();
   const { toggleSidebar } = useUI();
-  const { clearUser } = useSession(); // ← We'll remove usage, but keep if needed elsewhere
+  const { clearUser } = useSession(); 
   const { mutate: logout, isPending } = useLogout();
   const router = useRouter();
 
   const handleLogout = () => {
     logout(undefined, {
       onSuccess: () => {
-        // ✅ Remove this line — useLogout should already call clearUser
+        // Removed this line — useLogout should already call clearUser
         // clearUser(); 
         router.push("/login");
       },
