@@ -28,6 +28,7 @@ interface AuthResponse {
 }
 
 // Mock API functions (replace with real API calls later)
+
 const mockLogin = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1000));
@@ -52,24 +53,36 @@ const mockLogin = async (credentials: LoginCredentials): Promise<AuthResponse> =
 const mockRegister = async (credentials: RegisterCredentials): Promise<AuthResponse> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  // Mock validation
-  if (credentials.password !== credentials.confirmPassword) {
+
+  const { name, email, password, confirmPassword } = credentials;
+
+  // Validate passwords match
+  if (password !== confirmPassword) {
     throw new Error("Passwords do not match");
   }
-  
-  if (credentials.password.length < 6) {
+
+  // Validate password length
+  if (password.length < 6) {
     throw new Error("Password must be at least 6 characters long");
   }
-  
+
+  // Mock check for existing user (by email)
+  const existingUsers = ["test@example.com"];
+  if (existingUsers.includes(email)) {
+    throw new Error("An account with this email already exists");
+  }
+
+  // Create user (confirmPassword is not stored)
   return {
     user: {
-      id: "2",
-      email: credentials.email,
-      name: credentials.name,
+      id: Date.now().toString(), // Mock ID
+      email,
+      name,
       createdAt: new Date().toISOString(),
+      // Optional: generate avatar from name or use default
+      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name}`,
     },
-    token: "mock-jwt-token-register",
+    token: `mock-jwt-token-${Date.now()}`,
   };
 };
 
