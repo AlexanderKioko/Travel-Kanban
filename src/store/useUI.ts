@@ -4,8 +4,7 @@ import { persist } from "zustand/middleware";
 interface UIState {
   sidebarOpen: boolean;
   isMobile: boolean;
-  
-  // Actions
+
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   setIsMobile: (mobile: boolean) => void;
@@ -35,7 +34,7 @@ export const useUI = create<UIState>()(
       name: "ui-storage",
       partialize: (state) => ({
         sidebarOpen: state.sidebarOpen,
-      }),
+      } as const),
     }
   )
 );

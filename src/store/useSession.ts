@@ -14,8 +14,7 @@ interface SessionState {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  
-  // Actions
+
   setUser: (user: User, token?: string) => void;
   clearUser: () => void;
   setLoading: (loading: boolean) => void;
@@ -54,13 +53,8 @@ export const useSession = create<SessionState>()(
 
       initialize: () => {
         const { user, token } = get();
-        
-        // Check if we have valid session data
         if (user && token) {
-          set({
-            isAuthenticated: true,
-            isLoading: false,
-          });
+          set({ isAuthenticated: true, isLoading: false });
         } else {
           set({
             user: null,
@@ -76,7 +70,7 @@ export const useSession = create<SessionState>()(
       partialize: (state) => ({
         user: state.user,
         token: state.token,
-      }),
+      } as const),
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.initialize();
