@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TripBoard - Plan Your Perfect Trip",
+  title: "TripBoard",
   description: "Organize destinations, track budgets, and collaborate with travel companions using our beautiful kanban-style planning boards.",
 };
 
