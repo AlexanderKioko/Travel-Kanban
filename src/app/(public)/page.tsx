@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,12 +17,16 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { LayoutDashboard, CreditCard, Users, Star, Menu, X, Plane } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { LayoutDashboard, CreditCard, Users, Star, Menu, X, Plane, ArrowRight, Play } from "lucide-react";
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   // Navigation handlers
   const handleLoginNavigation = () => {
@@ -33,150 +38,83 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       {/* Navigation Header */}
-      <header className="sticky top-0 z-50 w-full bg-gradient-to-b from-white/95 to-white/70 backdrop-blur supports-[backdrop-filter]:from-white/90 supports-[backdrop-filter]:to-white/60 border-b border-slate-200/50 shadow-sm">
+      <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-lg border-b border-slate-200/20 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-2">
-              <Plane className="h-6 w-6 text-blue-600" />
-              <a
-                href="/"
-                className="text-xl font-bold text-slate-800 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded cursor-pointer"
-              >
+              <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg">
+                <Plane className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
                 TripBoard
-              </a>
+              </span>
             </div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:block" role="navigation">
-              <ul className="flex items-center space-x-8 list-none">
-                <li>
-                  <a
-                    href="#features"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1 cursor-pointer"
-                  >
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#how-it-works"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1 cursor-pointer"
-                  >
-                    How it Works
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#reviews"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1 cursor-pointer"
-                  >
-                    Reviews
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#pricing"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1 cursor-pointer"
-                  >
-                    Pricing
-                  </a>
-                </li>
+            <nav className="hidden md:block">
+              <ul className="flex items-center space-x-8">
+                {['Features', 'How it Works', 'Reviews', 'Pricing'].map((item) => (
+                  <li key={item}>
+                    <a
+                      href={`#${item.toLowerCase().replace(' ', '-')}`}
+                      className="text-slate-600 hover:text-blue-600 transition-all duration-200 font-medium relative group"
+                    >
+                      {item}
+                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
+                    </a>
+                  </li>
+                ))}
               </ul>
             </nav>
 
             {/* Desktop Action Buttons */}
             <div className="hidden md:flex items-center space-x-4">
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={handleLoginNavigation}
-                className="border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="text-slate-700 hover:text-slate-800 hover:bg-slate-50 transition-all duration-200 cursor-pointer"
               >
                 Sign In
               </Button>
               <Button
                 onClick={handleRegisterNavigation}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
               >
                 Get Started
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
 
             {/* Mobile Menu Button */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden cursor-pointer"
-                  aria-controls="mobile-menu"
-                  aria-expanded={mobileMenuOpen}
-                  aria-label="Toggle navigation menu"
-                >
-                  {mobileMenuOpen ? (
-                    <X className="h-6 w-6 cursor-pointer" />
-                  ) : (
-                    <Menu className="h-6 w-6 cursor-pointer" />
-                  )}
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent
-                side="right"
-                id="mobile-menu"
-                className="w-[300px] sm:w-[400px] bg-white"
-              >
+              <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-white">
                 <SheetHeader>
                   <SheetTitle className="text-left">Navigation</SheetTitle>
                 </SheetHeader>
-                <nav className="flex flex-col space-y-4 mt-8" role="navigation">
-                  <a
-                    href="#features"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2 cursor-pointer"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Features
-                  </a>
-                  <a
-                    href="#how-it-works"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2 cursor-pointer"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    How it Works
-                  </a>
-                  <a
-                    href="#reviews"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2 cursor-pointer"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Reviews
-                  </a>
-                  <a
-                    href="#pricing"
-                    className="text-slate-600 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-2 cursor-pointer"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Pricing
-                  </a>
-                  <div className="flex flex-col space-y-3 pt-6 border-t border-slate-200">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        handleLoginNavigation();
-                      }}
-                      className="w-full border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                <nav className="flex flex-col space-y-4 mt-8">
+                  {['Features', 'How it Works', 'Reviews', 'Pricing'].map((item) => (
+                    <a
+                      key={item}
+                      href={`#${item.toLowerCase().replace(' ', '-')}`}
+                      className="text-slate-600 hover:text-blue-600 transition-colors duration-200 px-2 py-2 font-medium"
+                      onClick={() => setMobileMenuOpen(false)}
                     >
+                      {item}
+                    </a>
+                  ))}
+                  <div className="flex flex-col space-y-3 pt-6 border-t border-slate-200">
+                    <Button variant="ghost" onClick={() => { setMobileMenuOpen(false); handleLoginNavigation(); }} className="cursor-pointer">
                       Sign In
                     </Button>
-                    <Button
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        handleRegisterNavigation();
-                      }}
-                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                    >
+                    <Button onClick={() => { setMobileMenuOpen(false); handleRegisterNavigation(); }} className="cursor-pointer">
                       Get Started
                     </Button>
                   </div>
@@ -189,14 +127,27 @@ export default function LandingPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="py-12 lg:py-20 bg-gradient-to-b from-white to-slate-50">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-              <div className="text-center lg:text-left">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-800 mb-6 leading-tight">
-                  Plan Your Perfect Trip
+        <section className="py-20 lg:py-32 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30"></div>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              <div className={`text-center lg:text-left transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium mb-8 border border-blue-200">
+                  <Star className="h-4 w-4 mr-2 fill-current" />
+                  Trusted by 10,000+ travelers
+                </div>
+                
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+                  <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 bg-clip-text text-transparent">
+                    Plan Your Perfect
+                  </span>
+                  <br />
+                  <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    Adventure
+                  </span>
                 </h1>
-                <p className="text-lg sm:text-xl text-slate-600 mb-8 leading-relaxed max-w-2xl">
+                
+                <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl">
                   Organize destinations, track budgets, and collaborate with travel companions using our beautiful kanban-style planning boards.
                 </p>
 
@@ -204,95 +155,106 @@ export default function LandingPage() {
                   <Button
                     size="lg"
                     onClick={handleRegisterNavigation}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 cursor-pointer"
                   >
                     Start Planning Free
+                    <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                   <Button
                     size="lg"
-                    variant="secondary"
-                    className="px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    variant="outline"
+                    className="px-8 py-4 text-lg font-semibold border-2 hover:bg-slate-50 hover:text-slate-800 transition-all duration-200 cursor-pointer"
                   >
+                    <Play className="mr-2 h-5 w-5" />
                     Watch Demo
                   </Button>
                 </div>
 
                 {/* Metrics */}
-                <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start text-sm text-slate-600">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-slate-800">10k+</span>
-                    <span>Happy Travelers</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-slate-800">50k+</span>
-                    <span>Trips Planned</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-slate-800">4.9</span>
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span>User Rating</span>
-                  </div>
+                <div className="flex flex-col sm:flex-row gap-8 justify-center lg:justify-start">
+                  {[
+                    { number: '10k+', label: 'Happy Travelers' },
+                    { number: '50k+', label: 'Trips Planned' },
+                    { number: '4.9', label: 'User Rating', icon: Star }
+                  ].map((metric, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <span className="text-2xl font-bold text-slate-800">{metric.number}</span>
+                      {metric.icon && <metric.icon className="h-5 w-5 fill-yellow-400 text-yellow-400" />}
+                      <span className="text-slate-600">{metric.label}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               {/* Kanban Board Visual */}
-              <div className="flex justify-center lg:justify-end">
-                <div className="relative">
-                  {/* Laptop Frame */}
-                  <div className="bg-slate-800 rounded-t-2xl p-6 shadow-2xl transform rotate-3 hover:rotate-1 transition-transform duration-300">
-                    <div className="bg-white rounded-lg p-4 min-h-[320px] w-[400px] shadow-inner">
-                      {/* Kanban Board */}
-                      <div className="grid grid-cols-3 gap-3 h-full">
-                        {/* Planning Column */}
-                        <div className="bg-slate-50 rounded-lg p-3">
-                          <h3 className="text-xs font-semibold text-slate-600 mb-3 text-center">
-                            Planning
-                          </h3>
-                          <div className="space-y-2">
-                            <div className="bg-blue-50 border-l-4 border-blue-400 p-2 rounded text-xs shadow-sm">
-                              <div className="font-medium text-slate-800">Research Hotels</div>
-                              <div className="text-slate-600 text-xs mt-1">$500 budget</div>
-                            </div>
-                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded text-xs shadow-sm">
-                              <div className="font-medium text-slate-800">Book Flights</div>
-                              <div className="text-slate-600 text-xs mt-1">$800 budget</div>
-                            </div>
+              <div className={`flex justify-center lg:justify-end transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                <div className="relative group">
+                  {/* Floating elements */}
+                  <div className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full opacity-20 animate-pulse"></div>
+                  <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 animate-pulse delay-1000"></div>
+                  
+                  {/* Main board */}
+                  <div className="bg-white rounded-2xl p-8 shadow-2xl border border-slate-200/50 transform group-hover:scale-105 transition-all duration-500">
+                    <div className="mb-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                        <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                        <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      </div>
+                      <div className="text-sm font-medium text-slate-800">Europe Trip 2025</div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 min-h-[340px] w-[420px]">
+                      {/* Planning Column */}
+                      <div className="bg-gradient-to-b from-slate-50 to-slate-100/50 rounded-xl p-4">
+                        <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                          Planning
+                        </h3>
+                        <div className="space-y-3">
+                          <div className="bg-white border-l-4 border-blue-400 p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                            <div className="font-medium text-slate-800 text-sm">Research Hotels</div>
+                            <div className="text-slate-600 text-xs mt-1">$500 budget</div>
+                          </div>
+                          <div className="bg-white border-l-4 border-amber-400 p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                            <div className="font-medium text-slate-800 text-sm">Book Flights</div>
+                            <div className="text-slate-600 text-xs mt-1">$800 budget</div>
                           </div>
                         </div>
+                      </div>
 
-                        {/* Booked Column */}
-                        <div className="bg-slate-50 rounded-lg p-3">
-                          <h3 className="text-xs font-semibold text-slate-600 mb-3 text-center">
-                            Booked
-                          </h3>
-                          <div className="space-y-2">
-                            <div className="bg-purple-50 border-l-4 border-purple-400 p-2 rounded text-xs shadow-sm">
-                              <div className="font-medium text-slate-800">Airport Transfer</div>
-                              <div className="text-slate-600 text-xs mt-1">$50 paid</div>
-                            </div>
+                      {/* In Progress Column */}
+                      <div className="bg-gradient-to-b from-slate-50 to-slate-100/50 rounded-xl p-4">
+                        <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                          <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                          In Progress
+                        </h3>
+                        <div className="space-y-3">
+                          <div className="bg-white border-l-4 border-purple-400 p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                            <div className="font-medium text-slate-800 text-sm">Airport Transfer</div>
+                            <div className="text-slate-600 text-xs mt-1">$50 booked</div>
                           </div>
                         </div>
+                      </div>
 
-                        {/* Completed Column */}
-                        <div className="bg-slate-50 rounded-lg p-3">
-                          <h3 className="text-xs font-semibold text-slate-600 mb-3 text-center">
-                            Completed
-                          </h3>
-                          <div className="space-y-2">
-                            <div className="bg-green-50 border-l-4 border-green-400 p-2 rounded text-xs shadow-sm flex flex-col">
-                              <div className="font-medium text-slate-800">Get Passport</div>
-                              <div className="text-slate-600 flex items-center gap-1 text-xs mt-1">
-                                <Star className="h-3 w-3 fill-green-500 text-green-500" />
-                                Done
-                              </div>
+                      {/* Completed Column */}
+                      <div className="bg-gradient-to-b from-slate-50 to-slate-100/50 rounded-xl p-4">
+                        <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                          Completed
+                        </h3>
+                        <div className="space-y-3">
+                          <div className="bg-white border-l-4 border-green-400 p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                            <div className="font-medium text-slate-800 text-sm">Get Passport</div>
+                            <div className="text-green-600 flex items-center gap-1 text-xs mt-1">
+                              <Star className="h-3 w-3 fill-current" />
+                              Completed
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  {/* Laptop Base */}
-                  <div className="bg-slate-700 h-6 rounded-b-2xl transform rotate-3 hover:rotate-1 transition-transform duration-300 shadow-lg"></div>
                 </div>
               </div>
             </div>
@@ -300,209 +262,204 @@ export default function LandingPage() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-16 lg:py-24 bg-white">
+        <section id="features" className="py-20 lg:py-32 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-6">
-                Everything You Need to Plan
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium mb-6">
+                Features that make a difference
+              </div>
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
+                <span className="bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                  Everything You Need to Plan
+                </span>
               </h2>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group cursor-pointer">
-                <CardHeader className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <LayoutDashboard className="h-8 w-8 text-white" />
-                  </div>
-                  <CardTitle className="text-xl font-bold text-slate-800">Visual Planning</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-center text-slate-600 leading-relaxed">
-                    Organize your trip with intuitive Kanban boards. Drag and drop tasks from planning to completion.
-                  </CardDescription>
-                </CardContent>
-              </Card>
-
-              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group cursor-pointer">
-                <CardHeader className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <CreditCard className="h-8 w-8 text-white" />
-                  </div>
-                  <CardTitle className="text-xl font-bold text-slate-800">Smart Budgeting</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-center text-slate-600 leading-relaxed">
-                    Track expenses in real-time with automatic calculations and per-person budget breakdowns.
-                  </CardDescription>
-                </CardContent>
-              </Card>
-
-              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group md:col-span-2 lg:col-span-1 cursor-pointer">
-                <CardHeader className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Users className="h-8 w-8 text-white" />
-                  </div>
-                  <CardTitle className="text-xl font-bold text-slate-800">Team Collaboration</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-center text-slate-600 leading-relaxed">
-                    Plan together with real-time collaboration, comments, and role-based permissions.
-                  </CardDescription>
-                </CardContent>
-              </Card>
+              {[
+                {
+                  icon: LayoutDashboard,
+                  title: 'Visual Planning',
+                  description: 'Organize your trip with intuitive Kanban boards. Drag and drop tasks from planning to completion.',
+                  gradient: 'from-blue-500 to-indigo-500'
+                },
+                {
+                  icon: CreditCard,
+                  title: 'Smart Budgeting',
+                  description: 'Track expenses in real-time with automatic calculations and per-person budget breakdowns.',
+                  gradient: 'from-green-500 to-emerald-500'
+                },
+                {
+                  icon: Users,
+                  title: 'Team Collaboration',
+                  description: 'Plan together with real-time collaboration, comments, and role-based permissions.',
+                  gradient: 'from-purple-500 to-pink-500'
+                }
+              ].map((feature, index) => (
+                <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group bg-gradient-to-br from-white to-slate-50/50">
+                  <CardHeader className="text-center pb-4">
+                    <div className={`w-16 h-16 mx-auto mb-6 bg-gradient-to-r ${feature.gradient} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                      <feature.icon className="h-8 w-8 text-white" />
+                    </div>
+                    <CardTitle className="text-xl font-bold text-slate-800">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-center text-slate-600 leading-relaxed">
+                      {feature.description}
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </section>
 
         {/* How it Works Section */}
-        <section id="how-it-works" className="py-16 lg:py-24 bg-slate-50">
+        <section id="how-it-works" className="py-20 lg:py-32 bg-gradient-to-b from-slate-50 to-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-6">
-                Simple. Powerful. Effective.
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 text-sm font-medium mb-6">
+                Simple process, powerful results
+              </div>
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
+                <span className="bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                  How TripBoard Works
+                </span>
               </h2>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-12">
-              <div className="text-center group cursor-pointer">
-                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
-                  1
+              {[
+                {
+                  number: '01',
+                  title: 'Create Your Board',
+                  description: 'Start with a template or create a custom board tailored to your trip.',
+                  gradient: 'from-blue-600 to-indigo-600'
+                },
+                {
+                  number: '02',
+                  title: 'Add Your Tasks',
+                  description: 'Break down your trip into manageable tasks with budgets and deadlines.',
+                  gradient: 'from-green-600 to-emerald-600'
+                },
+                {
+                  number: '03',
+                  title: 'Track Progress',
+                  description: 'Move tasks through your workflow as you complete them and watch your trip come together.',
+                  gradient: 'from-purple-600 to-pink-600'
+                }
+              ].map((step, index) => (
+                <div key={index} className="text-center group">
+                  <div className={`w-20 h-20 mx-auto mb-8 bg-gradient-to-r ${step.gradient} rounded-2xl flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                    {step.number}
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-800 mb-4">{step.title}</h3>
+                  <p className="text-slate-600 leading-relaxed max-w-sm mx-auto">
+                    {step.description}
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-4">Create Your Board</h3>
-                <p className="text-slate-600 leading-relaxed">
-                  Start with a template or a custom board for your trip.
-                </p>
-              </div>
-
-              <div className="text-center group cursor-pointer">
-                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-green-600 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
-                  2
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-4">Add Your Tasks</h3>
-                <p className="text-slate-600 leading-relaxed">
-                  Break down your trip into manageable tasks with budgets and due dates.
-                </p>
-              </div>
-
-              <div className="text-center group cursor-pointer">
-                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
-                  3
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-4">Track Progress</h3>
-                <p className="text-slate-600 leading-relaxed">
-                  Move tasks through your workflow as you complete them.
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         </section>
 
         {/* Reviews Section */}
-        <section id="reviews" className="py-16 lg:py-24 bg-white">
+        <section id="reviews" className="py-20 lg:py-32 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-8">
-                Loved by Travelers Worldwide
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-50 text-green-700 text-sm font-medium mb-6">
+                Loved by travelers worldwide
+              </div>
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-8">
+                <span className="bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                  What Our Users Say
+                </span>
               </h2>
 
               {/* Metric Badges */}
-              <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-semibold shadow-md cursor-pointer">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-full font-semibold shadow-lg hover:shadow-xl transition-shadow duration-200">
                   50K+ Trips Planned
                 </div>
-                <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-3 rounded-full font-semibold shadow-md cursor-pointer">
+                <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-full font-semibold shadow-lg hover:shadow-xl transition-shadow duration-200">
                   99.9% Uptime
                 </div>
               </div>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
-              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer">
-                <CardHeader>
-                  <div className="flex items-center gap-1 mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="h-4 w-4 fill-yellow-400 text-yellow-400"
-                      />
-                    ))}
-                  </div>
-                  <CardDescription className="text-slate-600 leading-relaxed">
-                    "TripBoard made planning our European vacation effortless. The budget tracking feature saved us from overspending, and collaborating with my travel partner was seamless."
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="font-semibold text-slate-800">— Sarah M.</p>
-                  <p className="text-sm text-slate-500">Frequent Traveler</p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer">
-                <CardHeader>
-                  <div className="flex items-center gap-1 mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="h-4 w-4 fill-yellow-400 text-yellow-400"
-                      />
-                    ))}
-                  </div>
-                  <CardDescription className="text-slate-600 leading-relaxed">
-                    "The kanban interface is intuitive and beautiful. I love how I can track everything from flight bookings to restaurant reservations in one place."
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="font-semibold text-slate-800">— Mike R.</p>
-                  <p className="text-sm text-slate-500">Business Traveler</p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer">
-                <CardHeader>
-                  <div className="flex items-center gap-1 mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="h-4 w-4 fill-yellow-400 text-yellow-400"
-                      />
-                    ))}
-                  </div>
-                  <CardDescription className="text-slate-600 leading-relaxed">
-                    "Planning our family reunion became stress-free with TripBoard. The collaboration features let everyone contribute, and we stayed within budget thanks to the smart tracking."
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="font-semibold text-slate-800">— Jennifer L.</p>
-                  <p className="text-sm text-slate-500">Family Trip Planner</p>
-                </CardContent>
-              </Card>
+              {[
+                {
+                  text: "TripBoard made planning our European vacation effortless. The budget tracking feature saved us from overspending, and collaborating with my travel partner was seamless.",
+                  author: "Sarah M.",
+                  role: "Frequent Traveler"
+                },
+                {
+                  text: "The kanban interface is intuitive and beautiful. I love how I can track everything from flight bookings to restaurant reservations in one place.",
+                  author: "Mike R.",
+                  role: "Business Traveler"
+                },
+                {
+                  text: "Planning our family reunion became stress-free with TripBoard. The collaboration features let everyone contribute, and we stayed within budget thanks to the smart tracking.",
+                  author: "Jennifer L.",
+                  role: "Family Trip Planner"
+                }
+              ].map((review, index) => (
+                <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-slate-50/30">
+                  <CardHeader>
+                    <div className="flex items-center gap-1 mb-4">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                    <CardDescription className="text-slate-700 leading-relaxed text-base italic">
+                      "{review.text}"
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold">
+                        {review.author.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-800">{review.author}</p>
+                        <p className="text-sm text-slate-500">{review.role}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </section>
 
         {/* Final CTA Banner */}
-        <section className="py-16 lg:py-24 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+        <section className="py-20 lg:py-32 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-20">
+            <div className="w-full h-full bg-white/5 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+          </div>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-8">
               Ready to Plan Your Next Adventure?
             </h2>
-            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Join thousands of travelers who trust TripBoard to organize their perfect trips.
+            <p className="text-xl text-blue-100 mb-12 max-w-3xl mx-auto leading-relaxed">
+              Join thousands of travelers who trust TripBoard to organize their perfect trips. Start planning your dream vacation today.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Button
                 size="lg"
-                variant="secondary"
                 onClick={handleRegisterNavigation}
-                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 cursor-pointer"
+                className="bg-white text-blue-600 hover:bg-blue-50 px-10 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 cursor-pointer"
               >
                 Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 cursor-pointer"
+                className="border-2 border-white text-white hover:bg-white/10 px-10 py-4 text-lg font-semibold backdrop-blur-sm transition-all duration-200"
               >
+                <Play className="mr-2 h-5 w-5" />
                 Watch Demo
               </Button>
             </div>
@@ -511,79 +468,70 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-800 text-white py-12">
+      <footer className="bg-slate-900 text-white py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-8">
             {/* Logo and Copyright */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Plane className="h-6 w-6 text-blue-400" />
-                <span className="text-xl font-bold text-white">TripBoard</span>
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg">
+                  <Plane className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-2xl font-bold text-white">TripBoard</span>
               </div>
-              <p className="text-slate-400 text-sm">
+              <p className="text-slate-400 leading-relaxed">
+                Making travel planning simple and enjoyable for everyone.
+              </p>
+              <p className="text-slate-500 text-sm">
                 © 2025 TripBoard. All rights reserved.
               </p>
             </div>
 
             {/* Product Links */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-white">Product</h3>
-              <div className="space-y-2 text-sm">
-                <a
-                  href="#features"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
-                >
-                  Features
-                </a>
-                <a
-                  href="#pricing"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
-                >
-                  Pricing
-                </a>
-                <a
-                  href="/templates"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
-                >
-                  Templates
-                </a>
-                <a
-                  href="/mobile"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
-                >
-                  Mobile App
-                </a>
+              <h3 className="font-semibold text-white text-lg">Product</h3>
+              <div className="space-y-3">
+                {['Features', 'Pricing', 'Templates', 'Mobile App'].map((item) => (
+                  <a
+                    key={item}
+                    href={`#${item.toLowerCase().replace(' ', '-')}`}
+                    className="block text-slate-400 hover:text-white transition-colors duration-200"
+                  >
+                    {item}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Company Links */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-white text-lg">Company</h3>
+              <div className="space-y-3">
+                {['About Us', 'Careers', 'Contact', 'Blog'].map((item) => (
+                  <a
+                    key={item}
+                    href={`/${item.toLowerCase().replace(' ', '-')}`}
+                    className="block text-slate-400 hover:text-white transition-colors duration-200"
+                  >
+                    {item}
+                  </a>
+                ))}
               </div>
             </div>
 
             {/* Support Links */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-white">Support</h3>
-              <div className="space-y-2 text-sm">
-                <a
-                  href="/help"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
-                >
-                  Help Center
-                </a>
-                <a
-                  href="/privacy"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
-                >
-                  Privacy Policy
-                </a>
-                <a
-                  href="/terms"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
-                >
-                  Terms of Service
-                </a>
-                <a
-                  href="/status"
-                  className="block text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 rounded cursor-pointer"
-                >
-                  Status
-                </a>
+              <h3 className="font-semibold text-white text-lg">Support</h3>
+              <div className="space-y-3">
+                {['Help Center', 'Privacy Policy', 'Terms of Service', 'Status'].map((item) => (
+                  <a
+                    key={item}
+                    href={`/${item.toLowerCase().replace(' ', '-')}`}
+                    className="block text-slate-400 hover:text-white transition-colors duration-200"
+                  >
+                    {item}
+                  </a>
+                ))}
               </div>
             </div>
           </div>
