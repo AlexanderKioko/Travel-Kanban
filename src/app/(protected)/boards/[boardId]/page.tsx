@@ -1,4 +1,3 @@
-// src/app/boards/[boardId]/page.tsx
 'use client';
 
 import { useRouter } from 'next/navigation';
