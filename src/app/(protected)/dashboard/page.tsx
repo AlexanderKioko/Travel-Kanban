@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Plus, Calendar, CreditCard, CheckSquare, Users, TrendingUp, MapPin } from 'lucide-react';
 
@@ -106,10 +107,12 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">
-            <Plus className="h-5 w-5" />
-            Create New Board
-          </button>
+          <Link href="/boards?create=true">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">
+              <Plus className="h-5 w-5" />
+              Create New Board
+            </button>
+          </Link>
         </div>
       </div>
 
@@ -196,53 +199,51 @@ export default function DashboardPage() {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900">Recent Boards</h2>
-                <a href="/boards" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                <Link href="/boards" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
                   View all →
-                </a>
+                </Link>
               </div>
             </div>
             <div className="p-6 space-y-4">
               {recentBoards.map((board) => (
-                <div
-                  key={board.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => window.location.href = `/boards/${board.id}`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-900">{board.title}</h3>
-                        <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(board.status)}`}>
-                          {board.status}
-                        </span>
-                      </div>
-                      <p className="text-gray-600 text-sm mb-3">{board.description}</p>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <CreditCard className="h-4 w-4" />
-                          {formatCurrency(board.budget)}
+                <Link key={board.id} href={`/boards/${board.id}`}>
+                  <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold text-gray-900">{board.title}</h3>
+                          <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(board.status)}`}>
+                            {board.status}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          {board.members} members
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {formatDate(board.startDate)} - {formatDate(board.endDate)}
+                        <p className="text-gray-600 text-sm mb-3">{board.description}</p>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <CreditCard className="h-4 w-4" />
+                            {formatCurrency(board.budget)}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users className="h-4 w-4" />
+                            {board.members} members
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            {formatDate(board.startDate)} - {formatDate(board.endDate)}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="text-right ml-4">
-                      <div className="text-2xl font-bold text-gray-900">{board.progress}%</div>
-                      <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full transition-all"
-                          style={{ width: `${board.progress}%` }}
-                        ></div>
+                      <div className="text-right ml-4">
+                        <div className="text-2xl font-bold text-gray-900">{board.progress}%</div>
+                        <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full transition-all"
+                            style={{ width: `${board.progress}%` }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -286,10 +287,12 @@ export default function DashboardPage() {
               <h2 className="text-xl font-semibold text-gray-900">Quick Actions</h2>
             </div>
             <div className="p-6 space-y-3">
-              <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-3">
-                <Plus className="h-5 w-5 text-blue-600" />
-                <span className="font-medium text-gray-900">Create New Board</span>
-              </button>
+              <Link href="/boards?create=true">
+                <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-3">
+                  <Plus className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium text-gray-900">Create New Board</span>
+                </button>
+              </Link>
               <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-3">
                 <Calendar className="h-5 w-5 text-green-600" />
                 <span className="font-medium text-gray-900">Browse Templates</span>
