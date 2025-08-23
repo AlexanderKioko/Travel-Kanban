@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useRegister } from "@/features/auth/hooks"; // Adjust path if needed
+import { useRouter } from "next/navigation";
 
 const registerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -37,8 +39,16 @@ export function RegisterForm() {
     },
   });
 
+  const router = useRouter();
+  const { mutate: register, isPending } = useRegister();
+
   function onSubmit(values: RegisterFormValues) {
-    console.log(values);
+    // ✅ Send full values — including confirmPassword
+    register(values, {
+      onSuccess: () => {
+        router.push("/dashboard");
+      },
+    });
   }
 
   return (
@@ -51,7 +61,11 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="Your name" {...field} />
+                <Input 
+                  placeholder="Your name" 
+                  {...field} 
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -64,7 +78,12 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="you@example.com" {...field} />
+                <Input 
+                  type="email" 
+                  placeholder="you@example.com" 
+                  {...field} 
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -77,7 +96,12 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••" {...field} />
+                <Input 
+                  type="password" 
+                  placeholder="••••••" 
+                  {...field} 
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -90,14 +114,19 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••" {...field} />
+                <Input 
+                  type="password" 
+                  placeholder="••••••" 
+                  {...field} 
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
-          Create account
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Creating account..." : "Create account"}
         </Button>
       </form>
     </Form>
