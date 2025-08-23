@@ -1,8 +1,22 @@
-// src/app/(protected)/boards/[boardId]/page.tsx
+// src/app/boards/[boardId]/page.tsx
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, MoreVertical, Calendar, CreditCard, Users, MapPin, Tag, Clock, Star, Share2, Settings } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Plus, 
+  MoreVertical, 
+  Calendar, 
+  CreditCard, 
+  Users, 
+  MapPin, 
+  Tag, 
+  Clock, 
+  Star, 
+  Share2, 
+  Settings 
+} from 'lucide-react';
 
 // Mock data for a single board
 const mockBoard = {
@@ -232,6 +246,7 @@ interface BoardPageProps {
 }
 
 export default function BoardPage({ params }: BoardPageProps) {
+  const router = useRouter();
   const [board, setBoard] = useState(mockBoard);
   const [lists, setLists] = useState(mockLists);
   const [showBoardSettings, setShowBoardSettings] = useState(false);
@@ -302,13 +317,14 @@ export default function BoardPage({ params }: BoardPageProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white border-b border-gray-200 sticky top-16 z-30">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => window.history.back()}
+                onClick={() => router.back()}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Go back to boards"
               >
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
               </button>
@@ -339,7 +355,7 @@ export default function BoardPage({ params }: BoardPageProps) {
           </div>
 
           {/* Board Stats */}
-          <div className="flex items-center gap-6 mt-4 text-sm text-gray-600">
+          <div className="flex flex-wrap items-center gap-6 mt-4 text-sm text-gray-600">
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
               <span>{formatDate(board.startDate)} - {formatDate(board.endDate)}</span>
@@ -391,7 +407,7 @@ export default function BoardPage({ params }: BoardPageProps) {
                       {list.cards.length}
                     </span>
                   </h3>
-                  <button className="p-1 hover:bg-gray-200 rounded transition-colors">
+                  <button className="p-1 hover:bg-gray-200 rounded transition-colors" aria-label={`More options for ${list.title}`}>
                     <MoreVertical className="h-4 w-4 text-gray-500" />
                   </button>
                 </div>
@@ -409,7 +425,7 @@ export default function BoardPage({ params }: BoardPageProps) {
                       <h4 className="font-medium text-gray-900 text-sm leading-tight flex-1">
                         {card.title}
                       </h4>
-                      <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded transition-opacity ml-2">
+                      <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded transition-opacity ml-2" aria-label="More options">
                         <MoreVertical className="h-3 w-3 text-gray-400" />
                       </button>
                     </div>
@@ -483,6 +499,7 @@ export default function BoardPage({ params }: BoardPageProps) {
                         {card.location && (
                           <div className="flex items-center gap-1 text-gray-600">
                             <MapPin className="h-3 w-3" />
+                            <span>Location</span>
                           </div>
                         )}
 
