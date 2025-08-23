@@ -1,0 +1,86 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  avatar?: string;
+  createdAt: string;
+}
+
+interface SessionState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  
+  // Actions
+  setUser: (user: User, token?: string) => void;
+  clearUser: () => void;
+  setLoading: (loading: boolean) => void;
+  initialize: () => void;
+}
+
+export const useSession = create<SessionState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      token: null,
+      isLoading: true,
+      isAuthenticated: false,
+
+      setUser: (user: User, token?: string) => {
+        set({
+          user,
+          token: token || get().token,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+      },
+
+      clearUser: () => {
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+      },
+
+      setLoading: (loading: boolean) => {
+        set({ isLoading: loading });
+      },
+
+      initialize: () => {
+        const { user, token } = get();
+        
+        // Check if we have valid session data
+        if (user && token) {
+          set({
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } else {
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
+      },
+    }),
+    {
+      name: "session-storage",
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+      }),
+      onRehydrateStorage: () => (state) => {
+        // Initialize session after rehydration
+        state?.initialize();
+      },
+    }
+  )
+);
