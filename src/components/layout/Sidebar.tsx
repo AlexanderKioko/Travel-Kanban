@@ -13,7 +13,7 @@ import {
 import {
   LayoutDashboard,
   Kanban,
-  FileTemplate,
+  FileText,
   Settings,
   Plus,
   Map,
@@ -48,7 +48,7 @@ const navigation = [
   {
     name: "Templates",
     href: "/dashboard/templates",
-    icon: FileTemplate,
+    icon: FileText,
   },
   {
     name: "Settings",
