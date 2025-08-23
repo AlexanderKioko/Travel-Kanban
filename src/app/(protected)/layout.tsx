@@ -11,38 +11,61 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, isLoading } = useSession();
+  const { isAuthenticated, isLoading, user } = useSession();
   const router = useRouter();
   const [showRedirectMessage, setShowRedirectMessage] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
 
+  // Simulate brief initial loading to avoid flash
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      // Show message for 2 seconds before redirecting
+    const timer = setTimeout(() => {
+      setInitialLoad(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Handle redirect after initial load
+  useEffect(() => {
+    if (!initialLoad && !isLoading && !isAuthenticated) {
       setShowRedirectMessage(true);
-      const timer = setTimeout(() => {
+      const redirectTimer = setTimeout(() => {
         router.push('/login');
       }, 2000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthenticated, isLoading, router]);
 
-  // Show loader while checking auth status
-  if (isLoading) {
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [isAuthenticated, isLoading, router, initialLoad]);
+
+  // Show loader during initial load or auth check
+  if (initialLoad || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="mb-4">
+            {/* Branded Logo */}
+            <div className="h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <span className="text-white font-bold text-lg">TB</span>
+            </div>
+            {/* Loader */}
+            <Loader size="lg" text="Loading your workspace..." />
+          </div>
+        </div>
       </div>
     );
   }
 
-  // Show redirect message if not authenticated
+  // Show friendly access denied message before redirect
   if (!isAuthenticated && showRedirectMessage) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
         <div className="max-w-md w-full text-center">
-          <h2 className="text-2xl font-bold text-slate-800 mb-4">Access Denied</h2>
-          <p className="text-slate-600 mb-6">
+          {/* Warning Icon */}
+          <div className="h-16 w-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-600 text-2xl">⚠️</span>
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-4">Access Denied</h2>
+          <p className="text-muted-foreground mb-6">
             You need to be logged in to access this page. Redirecting to login...
           </p>
           <button
@@ -56,11 +79,11 @@ export default function ProtectedLayout({
     );
   }
 
-  // Render app shell for authenticated users
-  if (isAuthenticated) {
+  // Render the full app shell for authenticated users
+  if (isAuthenticated && user) {
     return <AppShell>{children}</AppShell>;
   }
 
-  // Fallback (shouldn't reach here)
+  // Fallback (should never reach here)
   return null;
 }
