@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Calendar, CreditCard, Users, MapPin, MoreVertical, Star, Archive } from 'lucide-react';
 
@@ -207,10 +208,12 @@ export default function BoardsPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">
-            <Plus className="h-5 w-5" />
-            Create New Board
-          </button>
+          <Link href="/boards?create=true">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">
+              <Plus className="h-5 w-5" />
+              Create New Board
+            </button>
+          </Link>
         </div>
       </div>
 
@@ -219,7 +222,7 @@ export default function BoardsPage() {
         <div className="flex flex-col lg:flex-row lg:items-center gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+            <Search className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search boards, descriptions, or tags..."
@@ -287,104 +290,108 @@ export default function BoardsPage() {
       {/* Boards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredBoards.map((board) => (
-          <div
-            key={board.id}
-            className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer group"
-            onClick={() => window.location.href = `/boards/${board.id}`}
-          >
-            {/* Card Header */}
-            <div className="p-6 pb-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(board.status)}`}>
-                    {board.status}
-                  </span>
-                  {board.isFavorite && (
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
+          <Link key={board.id} href={`/boards/${board.id}`}>
+            <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer group">
+              {/* Card Header */}
+              <div className="p-6 pb-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(board.status)}`}>
+                      {board.status}
+                    </span>
+                    {board.isFavorite && (
+                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                    )}
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleFavorite(board.id);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded"
+                    aria-label={board.isFavorite ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <Star
+                      className={`h-4 w-4 ${board.isFavorite ? 'text-yellow-400 fill-current' : 'text-gray-400'}`}
+                    />
+                  </button>
+                </div>
+
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{board.title}</h3>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{board.description}</p>
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {board.tags.slice(0, 3).map((tag) => (
+                    <span
+                      key={tag}
+                      className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                  {board.tags.length > 3 && (
+                    <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
+                      +{board.tags.length - 3} more
+                    </span>
                   )}
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(board.id);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded"
-                >
-                  <MoreVertical className="h-4 w-4 text-gray-500" />
-                </button>
-              </div>
-              
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{board.title}</h3>
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{board.description}</p>
 
-              {/* Tags */}
-              <div className="flex flex-wrap gap-1 mb-4">
-                {board.tags.slice(0, 3).map((tag) => (
-                  <span
-                    key={tag}
-                    className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-                {board.tags.length > 3 && (
-                  <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
-                    +{board.tags.length - 3} more
-                  </span>
-                )}
-              </div>
-
-              {/* Progress */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-gray-600">Progress</span>
-                  <span className="font-medium text-gray-900">{board.progress}%</span>
+                {/* Progress */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="text-gray-600">Progress</span>
+                    <span className="font-medium text-gray-900">{board.progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all"
+                      style={{ width: `${board.progress}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all"
-                    style={{ width: `${board.progress}%` }}
-                  ></div>
+              </div>
+
+              {/* Card Footer */}
+              <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <CreditCard className="h-4 w-4" />
+                    <span className="font-medium">{formatCurrency(board.budget, board.currency)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Users className="h-4 w-4" />
+                    <span>{board.members} member{board.members !== 1 ? 's' : ''}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Calendar className="h-4 w-4" />
+                    <span>{formatDate(board.startDate)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <MapPin className="h-4 w-4" />
+                    <span>{getTotalTasks(board.tasksCount)} tasks</span>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Card Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <CreditCard className="h-4 w-4" />
-                  <span className="font-medium">{formatCurrency(board.budget, board.currency)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Users className="h-4 w-4" />
-                  <span>{board.members} member{board.members !== 1 ? 's' : ''}</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Calendar className="h-4 w-4" />
-                  <span>{formatDate(board.startDate)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <MapPin className="h-4 w-4" />
-                  <span>{getTotalTasks(board.tasksCount)} tasks</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          </Link>
         ))}
 
         {/* Create New Board Card */}
-        <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer group">
-          <div className="flex flex-col items-center justify-center p-8 h-full min-h-[300px]">
-            <div className="bg-blue-50 group-hover:bg-blue-100 p-4 rounded-full mb-4 transition-colors">
-              <Plus className="h-8 w-8 text-blue-600" />
+        <Link href="/boards?create=true" className="block">
+          <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group h-full">
+            <div className="flex flex-col items-center justify-center p-8 h-full min-h-[300px]">
+              <div className="bg-blue-50 group-hover:bg-blue-100 p-4 rounded-full mb-4 transition-colors">
+                <Plus className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Create New Board</h3>
+              <p className="text-gray-600 text-center text-sm">
+                Start planning your next adventure by creating a new travel board
+              </p>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Create New Board</h3>
-            <p className="text-gray-600 text-center text-sm">
-              Start planning your next adventure by creating a new travel board
-            </p>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Empty State */}
@@ -400,10 +407,12 @@ export default function BoardsPage() {
               : "Get started by creating your first travel board"
             }
           </p>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">
-            <Plus className="h-5 w-5" />
-            Create New Board
-          </button>
+          <Link href="/boards?create=true">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">
+              <Plus className="h-5 w-5" />
+              Create New Board
+            </button>
+          </Link>
         </div>
       )}
     </div>
