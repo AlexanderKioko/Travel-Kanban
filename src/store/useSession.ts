@@ -78,8 +78,9 @@ export const useSession = create<SessionState>()(
         token: state.token,
       }),
       onRehydrateStorage: () => (state) => {
-        // Initialize session after rehydration
-        state?.initialize();
+        if (state) {
+          state.initialize();
+        }
       },
     }
   )
