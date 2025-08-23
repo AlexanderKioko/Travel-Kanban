@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Plane, Eye, EyeOff, ArrowLeft, User, Mail, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useRegister } from "@/features/auth/hooks"; // ✅ Import hook
 
 const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +22,9 @@ const RegisterForm = () => {
     confirmPassword: "" 
   });
   const router = useRouter();
+
+  // Use the mutation
+  const { mutate: register, isPending } = useRegister();
 
   const validateForm = () => {
     const newErrors = { name: "", email: "", password: "", confirmPassword: "" };
@@ -56,8 +60,15 @@ const RegisterForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      console.log("Registration attempt:", { name, email, password });
-      alert("Account created successfully! (This is a demo)");
+      // Call register mutation instead of alert
+      register(
+        { name, email, password, confirmPassword },
+        {
+          onSuccess: () => {
+            // Redirect handled in useRegister
+          },
+        }
+      );
     }
   };
 
@@ -75,6 +86,7 @@ const RegisterForm = () => {
               placeholder="John Doe"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              disabled={isPending}
               className={`pl-10 transition-all duration-200 ${
                 errors.name 
                   ? "border-red-300 focus:border-red-500 focus:ring-red-500" 
@@ -98,6 +110,7 @@ const RegisterForm = () => {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isPending}
               className={`pl-10 transition-all duration-200 ${
                 errors.email 
                   ? "border-red-300 focus:border-red-500 focus:ring-red-500" 
@@ -121,6 +134,7 @@ const RegisterForm = () => {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isPending}
               className={`pl-10 pr-10 transition-all duration-200 ${
                 errors.password 
                   ? "border-red-300 focus:border-red-500 focus:ring-red-500" 
@@ -131,6 +145,7 @@ const RegisterForm = () => {
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              disabled={isPending}
             >
               {showPassword ? (
                 <EyeOff className="h-4 w-4" />
@@ -155,6 +170,7 @@ const RegisterForm = () => {
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={isPending}
               className={`pl-10 pr-10 transition-all duration-200 ${
                 errors.confirmPassword 
                   ? "border-red-300 focus:border-red-500 focus:ring-red-500" 
@@ -165,6 +181,7 @@ const RegisterForm = () => {
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              disabled={isPending}
             >
               {showConfirmPassword ? (
                 <EyeOff className="h-4 w-4" />
@@ -182,8 +199,9 @@ const RegisterForm = () => {
       <Button
         onClick={handleSubmit}
         className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-base font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] cursor-pointer"
+        disabled={isPending} // ✅ Disable during submit
       >
-        Create Your Free Account
+        {isPending ? "Creating account..." : "Create Your Free Account"} {/* ✅ Loading text */}
       </Button>
     </div>
   );
