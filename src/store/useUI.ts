@@ -16,18 +16,18 @@ export const useUI = create<UIState>()(
       sidebarOpen: true,
       isMobile: false,
 
-      toggleSidebar: () => set((state) => ({ 
-        sidebarOpen: !state.sidebarOpen 
+      toggleSidebar: () => set((state) => ({
+        sidebarOpen: !state.sidebarOpen,
       })),
 
-      setSidebarOpen: (open: boolean) => set({ 
-        sidebarOpen: open 
+      setSidebarOpen: (open: boolean) => set({
+        sidebarOpen: open,
       }),
 
-      setIsMobile: (mobile: boolean) => set({ 
+      setIsMobile: (mobile: boolean) => set({
         isMobile: mobile,
-        // Auto-close sidebar on mobile
-        sidebarOpen: mobile ? false : true
+        // Auto-close sidebar when switching to mobile
+        sidebarOpen: mobile ? false : true,
       }),
     }),
     {

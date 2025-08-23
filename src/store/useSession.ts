@@ -15,10 +15,10 @@ interface SessionState {
   isLoading: boolean;
   isAuthenticated: boolean;
 
-  setUser: (user: User, token?: string) => void;
+  // Actions
+  setUser: (user: User, token: string) => void;
   clearUser: () => void;
   setLoading: (loading: boolean) => void;
-  initialize: () => void;
 }
 
 export const useSession = create<SessionState>()(
@@ -29,10 +29,10 @@ export const useSession = create<SessionState>()(
       isLoading: true,
       isAuthenticated: false,
 
-      setUser: (user: User, token?: string) => {
+      setUser: (user: User, token: string) => {
         set({
           user,
-          token: token || get().token,
+          token,
           isAuthenticated: true,
           isLoading: false,
         });
@@ -50,20 +50,6 @@ export const useSession = create<SessionState>()(
       setLoading: (loading: boolean) => {
         set({ isLoading: loading });
       },
-
-      initialize: () => {
-        const { user, token } = get();
-        if (user && token) {
-          set({ isAuthenticated: true, isLoading: false });
-        } else {
-          set({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            isLoading: false,
-          });
-        }
-      },
     }),
     {
       name: "session-storage",
@@ -73,7 +59,11 @@ export const useSession = create<SessionState>()(
       } as const),
       onRehydrateStorage: () => (state) => {
         if (state) {
-          state.initialize();
+          // Rehydration complete — now we can set auth state
+          if (state.user && state.token) {
+            state.isAuthenticated = true;
+          }
+          state.isLoading = false;
         }
       },
     }
