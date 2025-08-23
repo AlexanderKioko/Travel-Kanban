@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useLogin } from "@/features/auth/hooks";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -30,8 +32,15 @@ export function LoginForm() {
     },
   });
 
+  const router = useRouter();
+  const { mutate: login, isPending } = useLogin();
+
   function onSubmit(values: LoginFormValues) {
-    console.log(values);
+    login(values, {
+      onSuccess: () => {
+        router.push("/dashboard");
+      },
+    });
   }
 
   return (
@@ -44,7 +53,12 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="you@example.com" {...field} />
+                <Input
+                  type="email"
+                  placeholder="you@example.com"
+                  {...field}
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -57,14 +71,19 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••" {...field} />
+                <Input
+                  type="password"
+                  placeholder="••••••"
+                  {...field}
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
-          Login
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Signing in..." : "Sign In"}
         </Button>
       </form>
     </Form>
