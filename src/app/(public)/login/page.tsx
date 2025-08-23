@@ -1,142 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plane, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Plane, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-const LoginForm = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [errors, setErrors] = useState({ email: "", password: "" });
-  const router = useRouter();
-
-  const validateForm = () => {
-    const newErrors = { email: "", password: "" };
-    
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-    
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-    
-    setErrors(newErrors);
-    return !newErrors.email && !newErrors.password;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      console.log("Login attempt:", { email, password, rememberMe });
-      // Handle login logic here
-      alert("Login successful! (This is a demo)");
-    }
-  };
-
-  const handleNavigateToRegister = () => {
-    router.push('/register');
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <label className="text-sm font-medium text-slate-700 mb-2 block">
-            Email
-          </label>
-          <Input
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={`transition-all duration-200 ${
-              errors.email 
-                ? "border-red-300 focus:border-red-500 focus:ring-red-500" 
-                : "border-slate-300 focus:border-blue-500 focus:ring-blue-500"
-            }`}
-          />
-          {errors.email && (
-            <p className="text-sm text-red-600 mt-1">{errors.email}</p>
-          )}
-        </div>
-        
-        <div>
-          <label className="text-sm font-medium text-slate-700 mb-2 block">
-            Password
-          </label>
-          <div className="relative">
-            <Input
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`pr-10 transition-all duration-200 ${
-                errors.password 
-                  ? "border-red-300 focus:border-red-500 focus:ring-red-500" 
-                  : "border-slate-300 focus:border-blue-500 focus:ring-blue-500"
-              }`}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-          {errors.password && (
-            <p className="text-sm text-red-600 mt-1">{errors.password}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <input
-            id="remember-me"
-            type="checkbox"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded transition-colors cursor-pointer"
-          />
-          <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-700 cursor-pointer">
-            Remember me
-          </label>
-        </div>
-
-        <div className="text-sm">
-          <a
-            href="#"
-            className="text-blue-600 hover:text-blue-500 font-medium transition-colors cursor-pointer"
-          >
-            Forgot password?
-          </a>
-        </div>
-      </div>
-
-      <Button
-        onClick={handleSubmit}
-        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-base font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] cursor-pointer"
-      >
-        Sign In to TripBoard
-      </Button>
-    </div>
-  );
-};
+import { LoginForm } from "@/components/auth/LoginForm"; // Make sure path is correct
 
 export default function LoginPage() {
   const router = useRouter();
@@ -155,13 +24,13 @@ export default function LoginPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50">
         {/* Floating Geometric Shapes */}
         <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-20 animate-pulse"></div>
-        <div className="absolute top-40 right-32 w-24 h-24 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 animate-pulse" style={{animationDelay: '1s'}}></div>
-        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-r from-teal-400 to-blue-400 rounded-full opacity-15 animate-pulse" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-20 right-20 w-28 h-28 bg-gradient-to-r from-orange-400 to-red-400 rounded-full opacity-20 animate-pulse" style={{animationDelay: '0.5s'}}></div>
+        <div className="absolute top-40 right-32 w-24 h-24 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-r from-teal-400 to-blue-400 rounded-full opacity-15 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-20 right-20 w-28 h-28 bg-gradient-to-r from-orange-400 to-red-400 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
         
         {/* Additional floating elements */}
-        <div className="absolute top-1/3 right-1/4 w-16 h-16 bg-gradient-to-r from-green-400 to-blue-400 rounded-full opacity-10 animate-pulse" style={{animationDelay: '3s'}}></div>
-        <div className="absolute bottom-1/3 left-1/3 w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-15 animate-pulse" style={{animationDelay: '1.5s'}}></div>
+        <div className="absolute top-1/3 right-1/4 w-16 h-16 bg-gradient-to-r from-green-400 to-blue-400 rounded-full opacity-10 animate-pulse" style={{ animationDelay: '3s' }}></div>
+        <div className="absolute bottom-1/3 left-1/3 w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-15 animate-pulse" style={{ animationDelay: '1.5s' }}></div>
 
         {/* Subtle grid pattern */}
         <div 
@@ -178,7 +47,7 @@ export default function LoginPage() {
         <Button
           variant="ghost"
           onClick={handleBackToHome}
-          className="text-slate-600 hover:text-slate-800 hover:bg-white/60 backdrop-blur-sm transition-all duration-200 border border-white/30 shadow-sm cursor-pointer"
+          className="text-slate-600 hover:text-slate-800 hover:bg-white/60 backdrop-blur-sm transition-all duration-200 border border-white/30 shadow-sm"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Home
@@ -228,7 +97,7 @@ export default function LoginPage() {
               <div className="grid grid-cols-2 gap-4">
                 <Button
                   variant="outline"
-                  className="w-full border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 py-3 cursor-pointer"
+                  className="w-full border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 py-3"
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                     <path
@@ -252,7 +121,7 @@ export default function LoginPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 py-3 cursor-pointer"
+                  className="w-full border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 py-3"
                 >
                   <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -267,7 +136,7 @@ export default function LoginPage() {
                   New to TripBoard?{" "}
                   <button
                     onClick={handleNavigateToRegister}
-                    className="text-blue-600 hover:text-blue-500 font-semibold transition-colors hover:underline bg-transparent border-none cursor-pointer"
+                    className="text-blue-600 hover:text-blue-500 font-semibold transition-colors hover:underline bg-transparent border-none"
                   >
                     Create your free account
                   </button>
@@ -296,11 +165,11 @@ export default function LoginPage() {
           <div className="text-center mt-8 text-xs text-slate-500 space-y-2">
             <p>
               By signing in, you agree to our{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-500 transition-colors hover:underline cursor-pointer">
+              <a href="#" className="text-blue-600 hover:text-blue-500 transition-colors hover:underline">
                 Terms of Service
               </a>{" "}
               and{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-500 transition-colors hover:underline cursor-pointer">
+              <a href="#" className="text-blue-600 hover:text-blue-500 transition-colors hover:underline">
                 Privacy Policy
               </a>
             </p>
