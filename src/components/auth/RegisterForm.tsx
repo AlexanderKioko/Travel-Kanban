@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useRegister } from "@/features/auth/hooks"; // Adjust path if needed
+import { useRegister } from "@/features/auth/hooks"; 
 import { useRouter } from "next/navigation";
 
 const registerSchema = z.object({
@@ -43,7 +43,7 @@ export function RegisterForm() {
   const { mutate: register, isPending } = useRegister();
 
   function onSubmit(values: RegisterFormValues) {
-    // ✅ Send full values — including confirmPassword
+    // Send full values — including confirmPassword
     register(values, {
       onSuccess: () => {
         router.push("/dashboard");
