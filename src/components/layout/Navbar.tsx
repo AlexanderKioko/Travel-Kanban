@@ -1,3 +1,4 @@
+// src/components/layout/Navbar.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -35,14 +36,15 @@ interface NavbarProps {
 export function Navbar({ user }: NavbarProps) {
   const { theme, setTheme } = useTheme();
   const { toggleSidebar } = useUI();
-  const { clearUser } = useSession();
+  const { clearUser } = useSession(); // ← We'll remove usage, but keep if needed elsewhere
   const { mutate: logout, isPending } = useLogout();
   const router = useRouter();
 
   const handleLogout = () => {
     logout(undefined, {
       onSuccess: () => {
-        clearUser(); // Ensure local state is cleared
+        // ✅ Remove this line — useLogout should already call clearUser
+        // clearUser(); 
         router.push("/login");
       },
     });
