@@ -1,5 +1,4 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plane, ArrowLeft } from "lucide-react";
@@ -26,13 +25,11 @@ export default function RegisterPage() {
         <div className="absolute top-40 right-32 w-24 h-24 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 animate-pulse" style={{animationDelay: '1s'}}></div>
         <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-r from-teal-400 to-blue-400 rounded-full opacity-15 animate-pulse" style={{animationDelay: '2s'}}></div>
         <div className="absolute bottom-20 right-20 w-28 h-28 bg-gradient-to-r from-orange-400 to-red-400 rounded-full opacity-20 animate-pulse" style={{animationDelay: '0.5s'}}></div>
-        
         {/* Additional floating elements */}
         <div className="absolute top-1/3 right-1/4 w-16 h-16 bg-gradient-to-r from-green-400 to-blue-400 rounded-full opacity-10 animate-pulse" style={{animationDelay: '3s'}}></div>
         <div className="absolute bottom-1/3 left-1/3 w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-15 animate-pulse" style={{animationDelay: '1.5s'}}></div>
-
         {/* Subtle grid pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-5"
           style={{
             backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.3) 1px, transparent 0)',
@@ -40,7 +37,6 @@ export default function RegisterPage() {
           }}
         ></div>
       </div>
-
       {/* Back to Home Button */}
       <div className="absolute top-6 left-6 z-50">
         <Button
@@ -52,7 +48,6 @@ export default function RegisterPage() {
           Back to Home
         </Button>
       </div>
-
       {/* Main Content */}
       <div className="relative z-30 flex items-center justify-center min-h-screen px-4 py-12">
         <div className="w-full max-w-md">
@@ -64,12 +59,11 @@ export default function RegisterPage() {
             <h1 className="text-3xl font-bold text-slate-800 mb-2">Join TripBoard</h1>
             <p className="text-slate-600 text-lg">Start planning your perfect trips today</p>
           </div>
-
           {/* Register Card */}
           <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border border-white/60 overflow-hidden relative">
             {/* Card background gradient - moved to lower z-index */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 z-0"></div>
-            
+
             <CardHeader className="relative z-20 pb-6">
               <CardTitle className="text-center text-2xl font-semibold text-slate-800">
                 Create Account
@@ -78,10 +72,10 @@ export default function RegisterPage() {
                 Get started with your free account
               </p>
             </CardHeader>
-            
+
             <CardContent className="relative z-20 space-y-6">
               <RegisterForm />
-              
+
               {/* Divider */}
               <div className="relative my-8 z-20">
                 <div className="absolute inset-0 flex items-center">
@@ -91,7 +85,6 @@ export default function RegisterPage() {
                   <span className="bg-white px-4 text-slate-500 font-medium">Or sign up with</span>
                 </div>
               </div>
-
               {/* Social Login */}
               <div className="grid grid-cols-2 gap-4 relative z-20">
                 <Button
@@ -128,7 +121,6 @@ export default function RegisterPage() {
                   Facebook
                 </Button>
               </div>
-
               {/* Sign In Link */}
               <div className="text-center pt-6 border-t border-slate-100 relative z-20">
                 <p className="text-sm text-slate-600">
@@ -143,7 +135,6 @@ export default function RegisterPage() {
               </div>
             </CardContent>
           </Card>
-
           {/* Trust Indicators */}
           <div className="mt-8 flex items-center justify-center space-x-6 text-sm text-slate-500 relative z-20">
             <div className="flex items-center">
@@ -159,7 +150,6 @@ export default function RegisterPage() {
               <span>Secure</span>
             </div>
           </div>
-
           {/* Footer */}
           <div className="text-center mt-8 text-xs text-slate-500 space-y-2 relative z-20">
             <p>

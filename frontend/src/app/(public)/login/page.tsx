@@ -1,5 +1,4 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plane, ArrowLeft, Shield, Users, Gift } from "lucide-react";
@@ -19,20 +18,19 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Enhanced Animated Background */}
+      {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        {/* Floating Geometric Shapes with better animations */}
+        {/* Floating Geometric Shapes */}
         <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-20 animate-pulse"></div>
         <div className="absolute top-40 right-32 w-24 h-24 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-r from-teal-400 to-blue-400 rounded-full opacity-15 animate-pulse" style={{ animationDelay: '2s' }}></div>
         <div className="absolute bottom-20 right-20 w-28 h-28 bg-gradient-to-r from-orange-400 to-red-400 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-        
+
         {/* Additional floating elements */}
         <div className="absolute top-1/3 right-1/4 w-16 h-16 bg-gradient-to-r from-green-400 to-blue-400 rounded-full opacity-10 animate-pulse" style={{ animationDelay: '3s' }}></div>
         <div className="absolute bottom-1/3 left-1/3 w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-15 animate-pulse" style={{ animationDelay: '1.5s' }}></div>
-
-        {/* Enhanced grid pattern */}
-        <div 
+        {/* Subtle grid pattern */}
+        <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.4) 1px, transparent 0)',
@@ -56,7 +54,7 @@ export default function LoginPage() {
       {/* Main Content */}
       <div className="relative z-30 flex items-center justify-center min-h-screen px-4 py-12">
         <div className="w-full max-w-md">
-          {/* Enhanced Logo Header */}
+          {/* Logo Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl mb-6 shadow-xl transform rotate-3 hover:rotate-1 transition-transform duration-300 hover:shadow-2xl">
               <Plane className="h-10 w-10 text-white" />
@@ -65,11 +63,11 @@ export default function LoginPage() {
             <p className="text-slate-600 text-lg">Ready to plan your next adventure?</p>
           </div>
 
-          {/* Enhanced Login Card */}
+          {/* Login Card */}
           <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border border-white/60 overflow-hidden relative hover:shadow-3xl transition-shadow duration-300">
             {/* Card background gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 z-0"></div>
-            
+
             <CardHeader className="relative z-20 pb-6">
               <CardTitle className="text-center text-2xl font-semibold text-slate-800">
                 Sign In
@@ -78,10 +76,10 @@ export default function LoginPage() {
                 Continue to your TripBoard dashboard
               </p>
             </CardHeader>
-            
+
             <CardContent className="relative z-20 space-y-6">
               <LoginForm />
-              
+
               {/* Divider */}
               <div className="relative my-8 z-20">
                 <div className="absolute inset-0 flex items-center">
@@ -92,7 +90,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Enhanced Social Login */}
+              {/* Social Login */}
               <div className="grid grid-cols-2 gap-4 relative z-20">
                 <Button
                   variant="outline"
@@ -144,7 +142,7 @@ export default function LoginPage() {
             </CardContent>
           </Card>
 
-          {/* Enhanced Trust Indicators */}
+          {/* Trust Indicators */}
           <div className="mt-8 flex items-center justify-center space-x-6 text-sm text-slate-500 relative z-20">
             <div className="flex items-center bg-white/50 rounded-full px-3 py-2 backdrop-blur-sm">
               <Shield className="w-4 h-4 text-green-500 mr-2" />
