@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth"; // Import useAuth instead of useLogin
+import { useAuth } from "@/hooks/useAuth"; 
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -35,7 +35,7 @@ export function LoginForm() {
   });
 
   const router = useRouter();
-  const { login, loading, error, clearError } = useAuth(); // Use useAuth hook
+  const { login, loading, error, clearError } = useAuth(); 
 
   function onSubmit(values: LoginFormValues) {
     clearError();
