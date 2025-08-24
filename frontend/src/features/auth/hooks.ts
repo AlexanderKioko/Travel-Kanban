@@ -2,8 +2,9 @@ import { useMutation } from "@tanstack/react-query";
 import { useSession } from "@/store/useSession";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { apiClient, tokenManager, AuthResponse as ApiAuthResponse, User as ApiUser } from "@/lib/api";
 
-// Types
+// --- Types ---
 interface LoginCredentials {
   email: string;
   password: string;
@@ -27,72 +28,58 @@ interface AuthResponse {
   token: string;
 }
 
-// Mock API functions (replace with real API calls later)
+// --- Helper Functions ---
+const mapApiUserToAuthResponse = (apiUser: ApiUser, accessToken: string): AuthResponse => ({
+  user: {
+    id: apiUser.id.toString(),
+    email: apiUser.email,
+    name: `${apiUser.first_name} ${apiUser.last_name}`,
+    createdAt: apiUser.created_at,
+  },
+  token: accessToken,
+});
 
-const mockLogin = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Mock validation
-  if (credentials.email === "test@example.com" && credentials.password === "password") {
-    return {
-      user: {
-        id: "1",
-        email: credentials.email,
-        name: "Test User",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face",
-        createdAt: new Date().toISOString(),
-      },
-      token: "mock-jwt-token",
-    };
-  }
-  
-  throw new Error("Invalid email or password");
+const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
+  const response = await apiClient.login(credentials);
+  return mapApiUserToAuthResponse(response.user, response.tokens.access);
 };
 
-const mockRegister = async (credentials: RegisterCredentials): Promise<AuthResponse> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-
+const register = async (credentials: RegisterCredentials): Promise<AuthResponse> => {
   const { name, email, password, confirmPassword } = credentials;
-
-  // Validate passwords match
   if (password !== confirmPassword) {
     throw new Error("Passwords do not match");
   }
-
-  // Validate password length
   if (password.length < 6) {
     throw new Error("Password must be at least 6 characters long");
   }
-
-  // Mock check for existing user (by email)
-  const existingUsers = ["test@example.com"];
-  if (existingUsers.includes(email)) {
-    throw new Error("An account with this email already exists");
-  }
-
-  // Create user (confirmPassword is not stored)
-  return {
-    user: {
-      id: Date.now().toString(), // Mock ID
-      email,
-      name,
-      createdAt: new Date().toISOString(),
-      // Optional: generate avatar from name or use default
-      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name}`,
-    },
-    token: `mock-jwt-token-${Date.now()}`,
-  };
+  const [first_name, ...last_name] = name.split(" ");
+  const response = await apiClient.register({
+    username: email.split("@")[0],
+    email,
+    full_name: name,
+    password,
+    password_confirm: confirmPassword,
+  });
+  return mapApiUserToAuthResponse(response.user, response.tokens.access);
 };
 
-// Custom hooks
+const logout = async (): Promise<void> => {
+  await apiClient.logout();
+};
+
+const validateSession = async (): Promise<AuthResponse> => {
+  const response = await apiClient.getCurrentUser();
+  const token = tokenManager.getAccessToken();
+  if (!token) throw new Error("No access token");
+  return mapApiUserToAuthResponse(response.user, token);
+};
+
+// --- Custom Hooks ---
 export function useLogin() {
   const { setUser } = useSession();
   const router = useRouter();
-
   return useMutation({
-    mutationFn: mockLogin,
+    mutationFn: login,
     onSuccess: (data) => {
       setUser(data.user, data.token);
       toast.success("Welcome back!", {
@@ -111,13 +98,12 @@ export function useLogin() {
 export function useRegister() {
   const { setUser } = useSession();
   const router = useRouter();
-
   return useMutation({
-    mutationFn: mockRegister,
+    mutationFn: register,
     onSuccess: (data) => {
       setUser(data.user, data.token);
       toast.success("Account created!", {
-        description: "Welcome to TripBoard! Your account has been created successfully.",
+        description: "Welcome! Your account has been created successfully.",
       });
       router.push("/dashboard");
     },
@@ -132,45 +118,25 @@ export function useRegister() {
 export function useLogout() {
   const { clearUser } = useSession();
   const router = useRouter();
-
   return useMutation({
-    mutationFn: async () => {
-      // Simulate API call to invalidate token
-      await new Promise(resolve => setTimeout(resolve, 500));
-    },
+    mutationFn: logout,
     onSuccess: () => {
       clearUser();
       toast.success("Logged out successfully");
       router.push("/login");
     },
     onError: () => {
-      // Even if API call fails, clear local session
       clearUser();
       router.push("/login");
     },
   });
 }
 
-// Session sync hook for validating stored tokens
 export function useSessionSync() {
   const { user, token, clearUser } = useSession();
-
   return useMutation({
-    mutationFn: async () => {
-      if (!user || !token) {
-        throw new Error("No session data");
-      }
-
-      // Mock API call to validate token
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // In a real app, you'd call your API to validate the token
-      // If token is invalid, throw an error
-      
-      return { user, token };
-    },
+    mutationFn: validateSession,
     onError: () => {
-      // If session validation fails, clear the session
       clearUser();
       toast.error("Session expired", {
         description: "Please log in again.",
