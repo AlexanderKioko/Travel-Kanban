@@ -1,4 +1,3 @@
-# travelkanban/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
@@ -41,8 +40,8 @@ urlpatterns = [
     path('api/health/', health_check, name='health_check'),
     path('', api_root, name='home'),  # Root URL also shows API info
 
-    # API routes for different apps
-    # Remove the separate 'api/auth/' inclusion
+
+
     # Keep only the main one for users
     path('api/users/', include('users.urls')), # Handles auth and user mgmt
     path('api/boards/', include('boards.urls')),
