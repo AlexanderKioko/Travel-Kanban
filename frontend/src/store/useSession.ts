@@ -1,12 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+// This User interface matches exactly what the useAuth is providing
 export interface User {
-  id: string;
+  id: string;  //useAuth converts number to string
   email: string;
-  name: string;
+  name: string;  //useAuth combines first_name + last_name into name
   avatar?: string;
-  createdAt: string;
+  createdAt: string;  //useAuth maps created_at to createdAt
 }
 
 interface SessionState {
@@ -15,7 +16,7 @@ interface SessionState {
   isLoading: boolean;
   isAuthenticated: boolean;
 
-  // Actions
+  // Actions - keeping the exact same signature your useAuth expects
   setUser: (user: User, token: string) => void;
   clearUser: () => void;
   setLoading: (loading: boolean) => void;
