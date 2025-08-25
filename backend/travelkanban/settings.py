@@ -245,3 +245,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Security settings (adjust based on your needs)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+
+ACCOUNT_AUTHENTICATION_METHOD = 'email'

@@ -54,6 +54,8 @@ export function RegisterForm() {
       await register(values);
       router.push("/boards/dashboard");
     } catch (err) {
+      // The useAuth hook now handles error parsing and sets the error state
+      // No need to handle the error here since it's already handled in useAuth
       console.error("Registration error:", err);
     }
   };
@@ -182,12 +184,33 @@ export function RegisterForm() {
             </FormItem>
           )}
         />
+        
+        {/* Enhanced error display */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-            {error}
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  Registration Error
+                </h3>
+                <div className="mt-2 text-sm text-red-700">
+                  {error}
+                </div>
+              </div>
+            </div>
           </div>
         )}
-        <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 relative z-10 transition-all duration-200 cursor-pointer">
+
+        <Button 
+          type="submit" 
+          disabled={loading} 
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 relative z-10 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {loading ? "Creating account..." : "Create account"}
         </Button>
       </form>

@@ -11,8 +11,8 @@ def api_root(request):
         'version': '1.0.0',
         'status': 'active',
         'endpoints': {
-            # Update this comment/docstring to reflect the single inclusion
-            'users_and_auth': '/api/users/', # Updated description
+            'auth': '/api/auth/',  # Updated to reflect new auth path
+            'users': '/api/users/',
             'boards': '/api/boards/',
             'cards': '/api/cards/',
             'budget': '/api/budget/',
@@ -40,10 +40,13 @@ urlpatterns = [
     path('api/health/', health_check, name='health_check'),
     path('', api_root, name='home'),  # Root URL also shows API info
 
-
-
-    # Keep only the main one for users
-    path('api/users/', include('users.urls')), # Handles auth and user mgmt
+    # Authentication endpoints - separated from user management
+    path('api/auth/', include('users.auth_urls')),
+    
+    # User management endpoints (for future user listing, searching, etc.)
+    path('api/users/', include('users.urls')),
+    
+    # Other app endpoints
     path('api/boards/', include('boards.urls')),
     path('api/cards/', include('cards.urls')),
     path('api/budget/', include('budget.urls')),

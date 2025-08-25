@@ -24,8 +24,7 @@ export interface AuthResponse {
 export interface RegisterData {
   username: string;
   email: string;
-  first_name: string;
-  last_name: string;
+  full_name: string;  // Changed from first_name and last_name to full_name
   password: string;
   password_confirm: string;
 }
@@ -38,6 +37,7 @@ export interface LoginData {
 export interface ApiError extends Error {
   status?: number;
   details?: any;
+  response?: any;
 }
 
 // --- Token Management ---
@@ -69,6 +69,66 @@ export const tokenManager = {
       localStorage.removeItem('refresh_token');
     }
   },
+};
+
+// --- Helper function to parse Django validation errors ---
+const parseDjangoError = (errorData: any): string => {
+  // Handle different Django error response formats
+  
+  // 1. Field validation errors (most common)
+  // Format: { "field_name": ["error message 1", "error message 2"] }
+  if (errorData && typeof errorData === 'object') {
+    const errorMessages: string[] = [];
+    
+    // Check for field-specific errors
+    Object.keys(errorData).forEach(field => {
+      const fieldErrors = errorData[field];
+      if (Array.isArray(fieldErrors)) {
+        const fieldName = field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ');
+        fieldErrors.forEach(error => {
+          errorMessages.push(`${fieldName}: ${error}`);
+        });
+      } else if (typeof fieldErrors === 'string') {
+        const fieldName = field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ');
+        errorMessages.push(`${fieldName}: ${fieldErrors}`);
+      }
+    });
+    
+    if (errorMessages.length > 0) {
+      return errorMessages.join('\n');
+    }
+  }
+  
+  // 2. Handle generic message fields
+  if (errorData?.message) {
+    return errorData.message;
+  }
+  
+  // 3. Handle DRF detail field
+  if (errorData?.detail) {
+    return Array.isArray(errorData.detail) ? errorData.detail.join(', ') : errorData.detail;
+  }
+  
+  // 4. Handle non_field_errors
+  if (errorData?.non_field_errors) {
+    const errors = Array.isArray(errorData.non_field_errors) 
+      ? errorData.non_field_errors 
+      : [errorData.non_field_errors];
+    return errors.join(', ');
+  }
+  
+  // 5. Handle direct error field
+  if (errorData?.error) {
+    return Array.isArray(errorData.error) ? errorData.error.join(', ') : errorData.error;
+  }
+  
+  // 6. If errorData is a string
+  if (typeof errorData === 'string') {
+    return errorData;
+  }
+  
+  // Default fallback
+  return 'Request failed. Please try again.';
 };
 
 // --- API Client Class ---
@@ -121,17 +181,43 @@ class ApiClient {
       }
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const error: ApiError = new Error(errorData.message || 'Request failed');
+        let errorData: any = {};
+        
+        try {
+          errorData = await response.json();
+        } catch (parseError) {
+          // If we can't parse the JSON, create a basic error object
+          errorData = { 
+            message: `HTTP ${response.status}: ${response.statusText}` 
+          };
+        }
+
+        // Use the smart error parsing function
+        const errorMessage = parseDjangoError(errorData);
+        
+        const error: ApiError = new Error(errorMessage);
         error.status = response.status;
         error.details = errorData;
+        error.response = errorData; // Add response for useAuth error handling
+        
         throw error;
       }
 
       return response.json() as Promise<T>;
     } catch (error) {
       console.error(`API request failed: ${endpoint}`, error);
-      throw error;
+      
+      // If it's already our enhanced ApiError, just re-throw it
+      if (error instanceof Error && 'status' in error) {
+        throw error;
+      }
+      
+      // If it's a network error or other issue, wrap it
+      const apiError: ApiError = new Error(
+        error instanceof Error ? error.message : 'Network error. Please check your connection.'
+      );
+      apiError.details = error;
+      throw apiError;
     }
   }
 

@@ -116,17 +116,12 @@ class LoginSerializer(serializers.Serializer):
             # Convert email to lowercase for consistency
             email = email.lower()
             
-            # Try to get user by email first
-            try:
-                user = User.objects.get(email=email)
-                # Authenticate using username (since Django's authenticate expects username)
-                user = authenticate(
-                    request=self.context.get('request'),
-                    username=user.username,
-                    password=password
-                )
-            except User.DoesNotExist:
-                user = None
+            # Use authenticate directly with email since USERNAME_FIELD = 'email'
+            user = authenticate(
+                request=self.context.get('request'),
+                username=email,  # Pass email as username since USERNAME_FIELD = 'email'
+                password=password
+            )
 
             if not user:
                 raise serializers.ValidationError(

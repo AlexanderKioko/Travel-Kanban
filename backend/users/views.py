@@ -48,12 +48,14 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     Custom JWT login endpoint that accepts email instead of username.
     POST /api/auth/login/
     """
+    serializer_class = LoginSerializer  # This is the key fix!
+
     def post(self, request, *args, **kwargs):
         # Use our custom LoginSerializer for validation
-        login_serializer = LoginSerializer(data=request.data)
-        login_serializer.is_valid(raise_exception=True)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         
-        user = login_serializer.validated_data['user']
+        user = serializer.validated_data['user']
         
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
@@ -129,7 +131,6 @@ class LogoutView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Optional: Function-based view for testing
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):

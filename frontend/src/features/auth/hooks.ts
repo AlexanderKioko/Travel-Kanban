@@ -1,3 +1,6 @@
+import { useCallback } from 'react';
+import { useSession } from '@/store/useSession'; // Adjust import path as needed
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 // --- Types ---
@@ -214,4 +217,30 @@ export const auth = {
   getCurrentUser: () => apiClient.getCurrentUser(),
   updateProfile: (data: Partial<User>) => apiClient.updateProfile(data),
   isAuthenticated: (): boolean => !!tokenManager.getAccessToken(),
+};
+
+// --- React Hooks ---
+export const useLogout = () => {
+  const { clearUser } = useSession(); // Use clearUser from your session store
+
+  const logout = useCallback(async () => {
+    try {
+      await auth.logout();
+      clearUser(); // Clear the session state
+      // Optionally redirect to login page
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Even if logout fails on server, clear local tokens and session
+      tokenManager.clearTokens();
+      clearUser();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    }
+  }, [clearUser]);
+
+  return { logout };
 };

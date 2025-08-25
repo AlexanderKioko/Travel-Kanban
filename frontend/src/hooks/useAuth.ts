@@ -20,13 +20,113 @@ interface AuthActions {
   clearError: () => void;
 }
 
-// --- Helper Function to Map API User to Session User ---
+// --- Helper Functions ---
 const mapApiUserToSessionUser = (apiUser: ApiUser) => ({
   id: apiUser.id.toString(),
   email: apiUser.email,
   name: `${apiUser.first_name} ${apiUser.last_name}`,
   createdAt: apiUser.created_at,
 });
+
+// Helper function to parse Django validation errors
+const parseApiError = (error: any): string => {
+  // If error has a response (fetch error)
+  if (error?.response) {
+    try {
+      const errorData = error.response;
+      
+      // Handle Django validation errors
+      if (errorData.errors && typeof errorData.errors === 'object') {
+        const errorMessages = Object.entries(errorData.errors)
+          .map(([field, messages]) => {
+            const messageArray = Array.isArray(messages) ? messages : [messages];
+            const fieldName = field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ');
+            return `${fieldName}: ${messageArray.join(', ')}`;
+          })
+          .join('\n');
+        return errorMessages;
+      }
+      
+      // Handle single error message
+      if (errorData.error) {
+        return errorData.error;
+      }
+      
+      // Handle message field
+      if (errorData.message) {
+        return errorData.message;
+      }
+      
+      // Handle detail field (common in DRF)
+      if (errorData.detail) {
+        return errorData.detail;
+      }
+      
+      // Handle non_field_errors (common in Django forms)
+      if (errorData.non_field_errors) {
+        const errors = Array.isArray(errorData.non_field_errors) 
+          ? errorData.non_field_errors 
+          : [errorData.non_field_errors];
+        return errors.join(', ');
+      }
+      
+    } catch (parseError) {
+      console.error('Error parsing API error:', parseError);
+    }
+  }
+  
+  // If it's a direct error object with a message
+  if (error?.message) {
+    return error.message;
+  }
+  
+  // If it's a string
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  // Default fallback
+  return 'An unexpected error occurred. Please try again.';
+};
+
+// Enhanced API call wrapper with better error handling
+const makeApiCall = async <T>(apiCall: () => Promise<T>): Promise<T> => {
+  try {
+    return await apiCall();
+  } catch (error: any) {
+    // If it's a fetch error, try to parse the response
+    if (error?.response || error?.status) {
+      let errorData;
+      
+      // Handle different types of response errors
+      if (error.response) {
+        errorData = error.response;
+      } else if (error.status && error.json) {
+        // Some API clients return errors with .json() method
+        try {
+          errorData = await error.json();
+        } catch {
+          errorData = { message: `HTTP ${error.status}: ${error.statusText || 'Request failed'}` };
+        }
+      }
+      
+      // Create enhanced error with parsed data
+      const enhancedError = new Error(parseApiError({ response: errorData }));
+      enhancedError.name = 'ApiError';
+      throw enhancedError;
+    }
+    
+    // If it's already a proper error, enhance it
+    if (error instanceof Error) {
+      const enhancedError = new Error(parseApiError(error));
+      enhancedError.name = error.name;
+      throw enhancedError;
+    }
+    
+    // Last resort - create new error
+    throw new Error(parseApiError(error));
+  }
+};
 
 // --- Main Hook ---
 export function useAuth(): AuthState & AuthActions {
@@ -48,7 +148,7 @@ export function useAuth(): AuthState & AuthActions {
         return;
       }
       try {
-        const response = await apiClient.getCurrentUser();
+        const response = await makeApiCall(() => apiClient.getCurrentUser());
         setState({
           user: response.user,
           loading: false,
@@ -74,7 +174,7 @@ export function useAuth(): AuthState & AuthActions {
     async (data: { email: string; password: string }) => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
       try {
-        const response = await apiClient.login(data);
+        const response = await makeApiCall(() => apiClient.login(data));
         tokenManager.setTokens(response.tokens);
         const sessionUser = mapApiUserToSessionUser(response.user);
         setUser(sessionUser, response.tokens.access);
@@ -86,10 +186,10 @@ export function useAuth(): AuthState & AuthActions {
         });
         toast.success('Welcome back!');
         router.push('/dashboard');
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Login failed';
-        setState((prev) => ({ ...prev, loading: false, error: message }));
-        toast.error('Login failed', { description: message });
+      } catch (error: any) {
+        const errorMessage = error.message || 'Login failed. Please check your credentials.';
+        setState((prev) => ({ ...prev, loading: false, error: errorMessage }));
+        toast.error('Login failed', { description: errorMessage });
         throw error;
       }
     },
@@ -100,6 +200,7 @@ export function useAuth(): AuthState & AuthActions {
     async (data: { name: string; username: string; email: string; password: string; password_confirm: string }) => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
       try {
+        // Client-side validation
         if (data.password !== data.password_confirm) {
           throw new Error('Passwords do not match');
         }
@@ -107,16 +208,17 @@ export function useAuth(): AuthState & AuthActions {
           throw new Error('Password must be at least 8 characters long');
         }
 
-        // Split the name into first_name and last_name
-        const [first_name, ...last_name] = data.name.split(' ');
-        const response = await apiClient.register({
-          username: data.username,
-          email: data.email,
-          first_name: first_name,
-          last_name: last_name.join(' '),
-          password: data.password,
-          password_confirm: data.password_confirm,
-        });
+        // Send the full_name as expected by the Django backend
+        // The backend will handle splitting it into first_name and last_name
+        const response = await makeApiCall(() => 
+          apiClient.register({
+            username: data.username,
+            email: data.email,
+            full_name: data.name, // Send as full_name instead of splitting
+            password: data.password,
+            password_confirm: data.password_confirm,
+          })
+        );
 
         tokenManager.setTokens(response.tokens);
         const sessionUser = mapApiUserToSessionUser(response.user);
@@ -127,12 +229,12 @@ export function useAuth(): AuthState & AuthActions {
           error: null,
           isAuthenticated: true,
         });
-        toast.success('Account created!');
+        toast.success('Account created successfully!');
         router.push('/boards/dashboard');
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Registration failed';
-        setState((prev) => ({ ...prev, loading: false, error: message }));
-        toast.error('Registration failed', { description: message });
+      } catch (error: any) {
+        const errorMessage = error.message || 'Registration failed. Please try again.';
+        setState((prev) => ({ ...prev, loading: false, error: errorMessage }));
+        toast.error('Registration failed', { description: errorMessage });
         throw error;
       }
     },
@@ -142,7 +244,7 @@ export function useAuth(): AuthState & AuthActions {
   const logout = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true }));
     try {
-      await apiClient.logout();
+      await makeApiCall(() => apiClient.logout());
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -161,7 +263,7 @@ export function useAuth(): AuthState & AuthActions {
   const refreshUser = useCallback(async () => {
     if (!tokenManager.getAccessToken()) return;
     try {
-      const response = await apiClient.getCurrentUser();
+      const response = await makeApiCall(() => apiClient.getCurrentUser());
       setState((prev) => ({
         ...prev,
         user: response.user,
