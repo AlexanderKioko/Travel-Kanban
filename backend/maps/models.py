@@ -1,13 +1,13 @@
 from django.db import models
-from cards.models import Card 
+from boards.models import Card   # FIXED: import from boards instead of cards
 
 class MapLocation(models.Model):
     card = models.OneToOneField(Card, on_delete=models.CASCADE, related_name='map_location')
-    name = models.CharField(max_length=200) # e.g., "Eiffel Tower", "Hotel de Paris"
+    name = models.CharField(max_length=200)  # e.g., "Eiffel Tower", "Hotel de Paris"
     description = models.TextField(blank=True, null=True)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6) # Standard for GPS
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)  # Standard for GPS
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    address = models.TextField(blank=True, null=True) # Optional full address string
+    address = models.TextField(blank=True, null=True)  # Optional full address string
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

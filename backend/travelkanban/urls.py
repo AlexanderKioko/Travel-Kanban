@@ -48,7 +48,6 @@ urlpatterns = [
     
     # Other app endpoints
     path('api/boards/', include('boards.urls')),
-    path('api/cards/', include('cards.urls')),
     path('api/budget/', include('budget.urls')),
     path('api/maps/', include('maps.urls')),
 ]

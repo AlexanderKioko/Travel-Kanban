@@ -1,10 +1,10 @@
-# maps/views.py
 from rest_framework import generics, permissions, serializers
 from rest_framework.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from .models import MapLocation
 from .serializers import MapLocationSerializer
-from cards.models import Card
+from boards.models import Card 
+
 
 class MapLocationListCreateView(generics.ListCreateAPIView):
     serializer_class = MapLocationSerializer
@@ -12,7 +12,7 @@ class MapLocationListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         """
-        This view should return locations for cards
+        Return only map locations for cards
         that belong to boards owned by the current user.
         """
         user_boards = self.request.user.boards.all()
@@ -30,11 +30,12 @@ class MapLocationListCreateView(generics.ListCreateAPIView):
         if card.board.owner != self.request.user:
             raise PermissionDenied("You don't have permission to add a location to this card.")
 
-        # Optional: Prevent duplicate locations for the same card
+        # Prevent duplicate map locations for the same card
         if hasattr(card, 'map_location'):
-             raise serializers.ValidationError({"card_id": "A location already exists for this card."})
+            raise serializers.ValidationError({"card_id": "A location already exists for this card."})
 
         serializer.save(card=card)
+
 
 class MapLocationDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = MapLocationSerializer
@@ -43,7 +44,7 @@ class MapLocationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         """
-        This view should return locations for cards
+        Return only map locations for cards
         that belong to boards owned by the current user.
         """
         user_boards = self.request.user.boards.all()
@@ -51,14 +52,12 @@ class MapLocationDetailView(generics.RetrieveUpdateDestroyAPIView):
         return MapLocation.objects.filter(card__in=cards)
 
     def perform_update(self, serializer):
-        # Re-check ownership on update
         instance = serializer.instance
         if instance.card.board.owner != self.request.user:
             raise PermissionDenied("You don't have permission to edit this location.")
         serializer.save()
 
     def perform_destroy(self, instance):
-        # Re-check ownership on delete
         if instance.card.board.owner != self.request.user:
             raise PermissionDenied("You don't have permission to delete this location.")
         instance.delete()

@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     # Your apps
     'users',
     'boards',
-    'cards',
     'budget',
     'maps',
 ]

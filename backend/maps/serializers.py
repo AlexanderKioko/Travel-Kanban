@@ -1,14 +1,14 @@
 from rest_framework import serializers
 from .models import MapLocation
-# Import the Card model and its serializer
-from cards.models import Card 
-from cards.serializers import CardSerializer 
+from boards.models import Card
+from boards.serializers import CardSerializer
+
 
 class MapLocationSerializer(serializers.ModelSerializer):
-    card = CardSerializer(read_only=True) # Show card details
+    card = CardSerializer(read_only=True)  # Show card details
     card_id = serializers.PrimaryKeyRelatedField(
         queryset=Card.objects.all(), source='card', write_only=True
-    ) # For creation/update
+    )  # For creation/update
 
     class Meta:
         model = MapLocation
@@ -28,6 +28,8 @@ class MapLocationSerializer(serializers.ModelSerializer):
         if request and hasattr(request, 'user'):
             user = request.user
             # Check if the card's board belongs to the user
-            if value.board.owner != user:
-                 raise serializers.ValidationError("You do not have permission to add a location to this card.")
+            if value.list.board.owner != user:  # ✅ FIX: use card.list.board.owner
+                raise serializers.ValidationError(
+                    "You do not have permission to add a location to this card."
+                )
         return value
