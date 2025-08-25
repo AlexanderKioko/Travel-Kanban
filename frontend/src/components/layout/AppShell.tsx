@@ -1,4 +1,3 @@
-// src/components/layout/AppShell.tsx
 "use client";
 
 import { useEffect } from "react";
