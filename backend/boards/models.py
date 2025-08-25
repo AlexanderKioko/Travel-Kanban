@@ -1,5 +1,7 @@
 from django.db import models
+from django.db.models import Max
 from users.models import User
+
 
 class Board(models.Model):
     STATUS_CHOICES = [
@@ -36,20 +38,29 @@ class Board(models.Model):
         db_table = 'boards'
         ordering = ['-created_at']
 
+
 class List(models.Model):
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='lists')
     title = models.CharField(max_length=200)
     color = models.CharField(max_length=20, default='blue')
-    position = models.PositiveIntegerField(default=0) 
+    position = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.title} ({self.board.title})"
 
+    def save(self, *args, **kwargs):
+        if not self.position:
+            # Set position to the next available position in the board
+            max_position = self.board.lists.aggregate(Max('position'))['position__max']
+            self.position = (max_position or -1) + 1
+        super().save(*args, **kwargs)
+
     class Meta:
         db_table = 'lists'
         ordering = ['position']
+
 
 class Card(models.Model):
     list = models.ForeignKey(List, on_delete=models.CASCADE, related_name='cards')
@@ -57,18 +68,25 @@ class Card(models.Model):
     description = models.TextField(blank=True, null=True)
     budget = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     people_number = models.PositiveIntegerField(default=1)
-    tags = models.JSONField(default=list)  
+    tags = models.JSONField(default=list)
     due_date = models.DateField(null=True, blank=True)
     assigned_members = models.ManyToManyField(User, blank=True, related_name='assigned_cards')
-    subtasks = models.JSONField(default=list)  
-    attachments = models.JSONField(default=list)  
-    location = models.JSONField(default=dict, null=True, blank=True)  
-    position = models.PositiveIntegerField(default=0)  
+    subtasks = models.JSONField(default=list)
+    attachments = models.JSONField(default=list)
+    location = models.JSONField(default=dict, null=True, blank=True)
+    position = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.title} ({self.list.board.title})"
+
+    def save(self, *args, **kwargs):
+        if not self.position:
+            # Set position to the next available position in the list
+            max_position = self.list.cards.aggregate(Max('position'))['position__max']
+            self.position = (max_position or -1) + 1
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'cards'
