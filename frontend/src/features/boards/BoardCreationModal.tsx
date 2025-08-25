@@ -27,8 +27,6 @@ export default function BoardCreationModal({ open, onClose }: BoardCreationModal
 
   const { mutate: createBoard, isPending } = useCreateBoard();
   const router = useRouter();
-  // Remove this line
-  // const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,13 +45,11 @@ export default function BoardCreationModal({ open, onClose }: BoardCreationModal
       },
       {
         onSuccess: (newBoard) => {
-          // Change this line
-          toast('Board created successfully');
+          toast.success('Board created successfully');
           onClose();
           router.push(`/boards/${newBoard.id}`);
         },
         onError: (error) => {
-          // Change this line
           toast.error('Failed to create board', { description: error.message });
         },
       }
