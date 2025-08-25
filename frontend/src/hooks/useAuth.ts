@@ -185,7 +185,7 @@ export function useAuth(): AuthState & AuthActions {
           isAuthenticated: true,
         });
         toast.success('Welcome back!');
-        router.push('/dashboard');
+        router.push('/dashboard'); // Fixed: was correct already
       } catch (error: any) {
         const errorMessage = error.message || 'Login failed. Please check your credentials.';
         setState((prev) => ({ ...prev, loading: false, error: errorMessage }));
@@ -230,7 +230,7 @@ export function useAuth(): AuthState & AuthActions {
           isAuthenticated: true,
         });
         toast.success('Account created successfully!');
-        router.push('/boards/dashboard');
+        router.push('/dashboard'); // FIXED: Changed from '/boards/dashboard' to '/dashboard'
       } catch (error: any) {
         const errorMessage = error.message || 'Registration failed. Please try again.';
         setState((prev) => ({ ...prev, loading: false, error: errorMessage }));
