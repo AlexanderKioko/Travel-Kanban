@@ -13,7 +13,7 @@ import {
 import { useTheme } from "next-themes";
 import { useUI } from "@/store/useUI";
 import { useSession, type User } from "@/store/useSession";
-import { useLogout } from "@/features/auth/hooks"; 
+import { useAuth } from "@/hooks/useAuth"; 
 import {
   Menu,
   Sun,
@@ -35,18 +35,16 @@ interface NavbarProps {
 export function Navbar({ user }: NavbarProps) {
   const { theme, setTheme } = useTheme();
   const { toggleSidebar } = useUI();
-  const { clearUser } = useSession(); 
-  const { mutate: logout, isPending } = useLogout();
+  const { logout, loading } = useAuth(); // Use useAuth hook
   const router = useRouter();
 
-  const handleLogout = () => {
-    logout(undefined, {
-      onSuccess: () => {
-        // Removed this line — useLogout should already call clearUser
-        // clearUser(); 
-        router.push("/login");
-      },
-    });
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // The logout function in useAuth already handles navigation and clearing user
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const getUserInitials = (name: string) => {
@@ -132,7 +130,7 @@ export function Navbar({ user }: NavbarProps) {
             </span>
           </Button>
 
-          {/* User Menu */}
+          {/* User Menu - Only render if user exists */}
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -175,11 +173,11 @@ export function Navbar({ user }: NavbarProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={handleLogout}
-                  disabled={isPending}
+                  disabled={loading}
                   className="text-red-600 focus:text-red-600"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  {isPending ? "Logging out..." : "Log out"}
+                  {loading ? "Logging out..." : "Log out"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
