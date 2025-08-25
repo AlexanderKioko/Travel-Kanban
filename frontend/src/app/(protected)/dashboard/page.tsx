@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus, Calendar, CreditCard, CheckSquare, Users, TrendingUp, MapPin } from 'lucide-react';
@@ -23,6 +22,12 @@ export default function DashboardPage() {
   const [upcomingTasks, setUpcomingTasks] = useState<
     { id: number; title: string; board: string; dueDate: string }[]
   >([]);
+
+  // Helper function to extract first name from full name
+  const getFirstName = (fullName: string | undefined) => {
+    if (!fullName) return 'User';
+    return fullName.split(' ')[0];
+  };
 
   useEffect(() => {
     if (error) {
@@ -58,13 +63,11 @@ export default function DashboardPage() {
         ).length,
       };
       setStats(calculatedStats);
-
       const sortedBoards = [...boards].sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
       setRecentBoards(sortedBoards.slice(0, 3));
-
       const tasks = boards
         .flatMap((b) =>
           b.lists.flatMap((l) =>
@@ -134,7 +137,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.first_name ?? 'User'} 👋
+            Welcome back, {getFirstName(user?.name)} 👋
           </h1>
           <p className="text-gray-600 mt-1">Here's what's happening with your travel plans</p>
         </div>
@@ -147,7 +150,6 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
-
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         <div className="bg-white rounded-lg p-6 border border-gray-200">
@@ -217,7 +219,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Boards */}
@@ -275,7 +276,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-
         {/* Upcoming Tasks */}
         <div>
           <div className="bg-white rounded-lg border border-gray-200">
@@ -298,7 +298,6 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ))}
-
               {upcomingTasks.length === 0 && (
                 <div className="text-center py-8">
                   <CheckSquare className="h-12 w-12 text-gray-300 mx-auto mb-3" />
@@ -307,7 +306,6 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
-
           {/* Quick Actions */}
           <div className="bg-white rounded-lg border border-gray-200 mt-6">
             <div className="p-6 border-b border-gray-200">
