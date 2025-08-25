@@ -1,5 +1,6 @@
 'use client';
 
+import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { 
@@ -241,20 +242,27 @@ const mockLists = [
 ];
 
 interface BoardPageProps {
-  params: { boardId: string };
+  params: Promise<{ boardId: string }>; // Updated for Next.js 15
 }
 
 export default function BoardPage({ params }: BoardPageProps) {
+  // Unwrap the params Promise using React.use()
+  const resolvedParams = use(params);
+  const { boardId } = resolvedParams;
+
   const router = useRouter();
   const [board, setBoard] = useState(mockBoard);
   const [lists, setLists] = useState(mockLists);
   const [showBoardSettings, setShowBoardSettings] = useState(false);
 
   useEffect(() => {
-    // In a real app, fetch board and lists data
-    // fetchBoard(params.boardId);
-    // fetchLists(params.boardId);
-  }, [params.boardId]);
+    if (boardId) {
+      // In a real app, fetch board and lists data using the resolved boardId
+      console.log('Loading board with ID:', boardId);
+      // fetchBoard(boardId);
+      // fetchLists(boardId);
+    }
+  }, [boardId]); // Now using the resolved boardId
 
   const getListColor = (color: string) => {
     const colors = {
