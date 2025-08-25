@@ -8,7 +8,7 @@ const getHeaders = (token: string | null) => ({
   ...(token ? { Authorization: `Bearer ${token}` } : {}),
 });
 
-interface User {
+export interface User {
   id: number;
   username: string;
   email: string;
@@ -17,7 +17,7 @@ interface User {
   created_at: string;
 }
 
-interface Board {
+export interface Board {
   id: number;
   title: string;
   description: string | null;
@@ -36,7 +36,7 @@ interface Board {
   updated_at: string;
 }
 
-interface List {
+export interface List {
   id: number;
   board: number;
   title: string;
@@ -47,7 +47,7 @@ interface List {
   updated_at: string;
 }
 
-interface Card {
+export interface Card {
   id: number;
   list: number;
   title: string;
@@ -57,8 +57,8 @@ interface Card {
   tags: string[];
   due_date: string | null;
   assigned_members: User[];
-  subtasks: { title: string; completed: boolean }[]; // No id needed
-  attachments: { name: string; size: string }[]; // No id needed
+  subtasks: { title: string; completed: boolean }[];
+  attachments: { name: string; size: string }[];
   location: { name: string; lat: number; lng: number } | null;
   position: number;
   created_at: string;
