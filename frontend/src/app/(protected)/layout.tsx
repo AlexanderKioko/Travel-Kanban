@@ -16,11 +16,11 @@ export default function ProtectedLayout({
   const [showRedirectMessage, setShowRedirectMessage] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
 
-  // Simulate brief initial loading to avoid flash
+  // Reduce initial loading flash
   useEffect(() => {
     const timer = setTimeout(() => {
       setInitialLoad(false);
-    }, 500);
+    }, 300); // Reduced from 500ms to 300ms for faster response
 
     return () => clearTimeout(timer);
   }, []);
@@ -31,7 +31,7 @@ export default function ProtectedLayout({
       setShowRedirectMessage(true);
       const redirectTimer = setTimeout(() => {
         router.push('/login');
-      }, 2000);
+      }, 1500); // Reduced from 2000ms to 1500ms
 
       return () => clearTimeout(redirectTimer);
     }
@@ -61,7 +61,7 @@ export default function ProtectedLayout({
       <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
         <div className="max-w-md w-full text-center">
           {/* Warning Icon */}
-          <div className="h-16 w-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="h-16 w-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-red-600 text-2xl">⚠️</span>
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-4">Access Denied</h2>
@@ -79,11 +79,20 @@ export default function ProtectedLayout({
     );
   }
 
-  // Render the full app shell for authenticated users
+  // Only render AppShell when we have both authenticated state and user data
   if (isAuthenticated && user) {
     return <AppShell>{children}</AppShell>;
   }
 
-  // Fallback (should never reach here)
-  return null;
+  // Fallback loader for edge cases
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+      <div className="text-center">
+        <div className="h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+          <span className="text-white font-bold text-lg">TB</span>
+        </div>
+        <Loader size="lg" text="Authenticating..." />
+      </div>
+    </div>
+  );
 }
