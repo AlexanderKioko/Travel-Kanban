@@ -31,7 +31,7 @@ const navigation = [
   },
   {
     name: "My Boards",
-    href: "/boards",
+    href: "/boards", 
     icon: Kanban,
   },
   {
@@ -59,11 +59,17 @@ const navigation = [
 export function Sidebar({ isCollapsed }: SidebarProps) {
   const pathname = usePathname();
 
-  // Check active state for Dashboard and Boards
+  // Improved active state logic
   const isActive = (href: string) => {
     if (href === "/dashboard") {
+      // Dashboard should only be active on exact match
       return pathname === "/dashboard";
     }
+    if (href === "/boards") {
+      // Boards should be active for /boards and /boards/[boardId]
+      return pathname === "/boards" || pathname.startsWith("/boards/");
+    }
+    // For other routes, use startsWith
     return pathname.startsWith(href);
   };
 
