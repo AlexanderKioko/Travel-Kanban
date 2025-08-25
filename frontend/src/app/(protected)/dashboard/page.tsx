@@ -1,81 +1,101 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Plus, Calendar, CreditCard, CheckSquare, Users, TrendingUp, MapPin } from 'lucide-react';
-
-// Mock data - replace with actual API calls
-const mockStats = {
-  totalBoards: 8,
-  activeTrips: 3,
-  totalBudget: 15750,
-  completedTasks: 47,
-  upcomingTasks: 12,
-  totalMembers: 6
-};
-
-const mockRecentBoards = [
-  {
-    id: '1',
-    title: 'Tokyo Adventure 2024',
-    description: 'Cherry blossom season trip',
-    status: 'active',
-    budget: 4500,
-    members: 2,
-    progress: 75,
-    startDate: '2024-03-15',
-    endDate: '2024-03-25'
-  },
-  {
-    id: '2',
-    title: 'Paris Romantic Getaway',
-    description: 'Anniversary celebration',
-    status: 'planning',
-    budget: 3200,
-    members: 2,
-    progress: 30,
-    startDate: '2024-05-10',
-    endDate: '2024-05-17'
-  },
-  {
-    id: '3',
-    title: 'Family Beach Vacation',
-    description: 'Summer holiday in Maldives',
-    status: 'completed',
-    budget: 8050,
-    members: 4,
-    progress: 100,
-    startDate: '2024-07-01',
-    endDate: '2024-07-14'
-  }
-];
-
-const mockUpcomingTasks = [
-  { id: '1', title: 'Book flight tickets', board: 'Tokyo Adventure 2024', dueDate: '2024-09-15' },
-  { id: '2', title: 'Reserve hotel room', board: 'Paris Romantic Getaway', dueDate: '2024-09-18' },
-  { id: '3', title: 'Apply for visa', board: 'Tokyo Adventure 2024', dueDate: '2024-09-20' },
-];
+import { useSession } from '@/store/useSession';
+import { useGetBoards } from '@/features/boards/hooks';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 export default function DashboardPage() {
-  const [user, setUser] = useState({ name: 'Alex', firstName: 'Alex' });
-  const [stats, setStats] = useState(mockStats);
-  const [recentBoards, setRecentBoards] = useState(mockRecentBoards);
-  const [upcomingTasks, setUpcomingTasks] = useState(mockUpcomingTasks);
+  const { user } = useSession();
+  const { data: boards = [], isLoading, error } = useGetBoards();
+  const [stats, setStats] = useState({
+    totalBoards: 0,
+    activeTrips: 0,
+    totalBudget: 0,
+    completedTasks: 0,
+    upcomingTasks: 0,
+    totalMembers: 0,
+  });
+  const [recentBoards, setRecentBoards] = useState<(typeof boards)[0][]>([]);
+  const [upcomingTasks, setUpcomingTasks] = useState<
+    { id: number; title: string; board: string; dueDate: string }[]
+  >([]);
 
-  // In a real app, you'd fetch this data from your API
   useEffect(() => {
-    // fetchUserData();
-    // fetchDashboardStats();
-    // fetchRecentBoards();
-    // fetchUpcomingTasks();
-  }, []);
+    if (error) {
+      toast.error('Failed to load dashboard data');
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (boards.length > 0) {
+      const calculatedStats = {
+        totalBoards: boards.length,
+        activeTrips: boards.filter((b) => b.status === 'active').length,
+        totalBudget: boards.reduce((sum, b) => sum + parseFloat(b.budget), 0),
+        completedTasks: boards.reduce(
+          (sum, b) =>
+            sum +
+            b.lists.reduce(
+              (s, l) =>
+                s + (l.title.toLowerCase().includes('completed') ? l.cards.length : 0),
+              0
+            ),
+          0
+        ),
+        upcomingTasks: boards.flatMap((b) =>
+          b.lists.flatMap((l) =>
+            l.cards.filter(
+              (c) => c.due_date && new Date(c.due_date) > new Date()
+            )
+          )
+        ).length,
+        totalMembers: Array.from(
+          new Set(boards.flatMap((b) => b.members.map((m) => m.id)))
+        ).length,
+      };
+      setStats(calculatedStats);
+
+      const sortedBoards = [...boards].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setRecentBoards(sortedBoards.slice(0, 3));
+
+      const tasks = boards
+        .flatMap((b) =>
+          b.lists.flatMap((l) =>
+            l.cards
+              .filter((c) => c.due_date && new Date(c.due_date) > new Date())
+              .map((c) => ({
+                id: c.id,
+                title: c.title,
+                board: b.title,
+                dueDate: c.due_date!,
+              }))
+          )
+        )
+        .sort(
+          (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+        )
+        .slice(0, 3);
+      setUpcomingTasks(tasks);
+    }
+  }, [boards]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 border-green-200';
-      case 'planning': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'completed': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'active':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'planning':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'completed':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -83,16 +103,30 @@ export default function DashboardPage() {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
+
+  const calculateProgress = (board: (typeof boards)[0]) => {
+    const totalTasks = board.lists.reduce((sum, list) => sum + list.cards.length, 0);
+    if (totalTasks === 0) return 0;
+    const completedTasks = board.lists
+      .filter((list) => list.title.toLowerCase().includes('completed'))
+      .reduce((sum, list) => sum + list.cards.length, 0);
+    return Math.round((completedTasks / totalTasks) * 100);
+  };
+
+  if (isLoading) {
+    return <div className="text-center py-12">Loading dashboard...</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8">
@@ -100,18 +134,16 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user.firstName} 👋
+            Welcome back, {user?.first_name ?? 'User'} 👋
           </h1>
-          <p className="text-gray-600 mt-1">
-            Here's what's happening with your travel plans
-          </p>
+          <p className="text-gray-600 mt-1">Here's what's happening with your travel plans</p>
         </div>
         <div className="mt-4 sm:mt-0">
           <Link href="/boards?create=true">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">
+            <Button className="inline-flex items-center gap-2">
               <Plus className="h-5 w-5" />
               Create New Board
-            </button>
+            </Button>
           </Link>
         </div>
       </div>
@@ -129,7 +161,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-lg p-6 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -141,7 +172,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-lg p-6 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -153,7 +183,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-lg p-6 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -165,7 +194,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-lg p-6 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -177,7 +205,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-lg p-6 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -220,24 +247,24 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                           <div className="flex items-center gap-1">
                             <CreditCard className="h-4 w-4" />
-                            {formatCurrency(board.budget)}
+                            {formatCurrency(parseFloat(board.budget))}
                           </div>
                           <div className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
-                            {board.members} members
+                            {board.members.length} members
                           </div>
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4" />
-                            {formatDate(board.startDate)} - {formatDate(board.endDate)}
+                            {formatDate(board.start_date)} - {formatDate(board.end_date)}
                           </div>
                         </div>
                       </div>
                       <div className="text-right ml-4">
-                        <div className="text-2xl font-bold text-gray-900">{board.progress}%</div>
+                        <div className="text-2xl font-bold text-gray-900">{calculateProgress(board)}%</div>
                         <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
                           <div
                             className="bg-blue-600 h-2 rounded-full transition-all"
-                            style={{ width: `${board.progress}%` }}
+                            style={{ width: `${calculateProgress(board)}%` }}
                           ></div>
                         </div>
                       </div>
@@ -271,7 +298,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ))}
-              
+
               {upcomingTasks.length === 0 && (
                 <div className="text-center py-8">
                   <CheckSquare className="h-12 w-12 text-gray-300 mx-auto mb-3" />
@@ -288,19 +315,15 @@ export default function DashboardPage() {
             </div>
             <div className="p-6 space-y-3">
               <Link href="/boards?create=true">
-                <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-3">
+                <Button variant="outline" className="w-full text-left flex items-center gap-3">
                   <Plus className="h-5 w-5 text-blue-600" />
                   <span className="font-medium text-gray-900">Create New Board</span>
-                </button>
+                </Button>
               </Link>
-              <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-3">
-                <Calendar className="h-5 w-5 text-green-600" />
-                <span className="font-medium text-gray-900">Browse Templates</span>
-              </button>
-              <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-3">
+              <Button variant="outline" className="w-full text-left flex items-center gap-3">
                 <Users className="h-5 w-5 text-purple-600" />
                 <span className="font-medium text-gray-900">Invite Team Members</span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>
