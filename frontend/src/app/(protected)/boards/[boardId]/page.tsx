@@ -245,24 +245,76 @@ interface BoardPageProps {
   params: Promise<{ boardId: string }>; // Updated for Next.js 15
 }
 
+// Function to validate if boardId is a valid board ID (not a reserved word)
+const isValidBoardId = (boardId: string): boolean => {
+  // List of reserved words that should not be treated as board IDs
+  const reservedWords = ['dashboard', 'create', 'settings', 'profile', 'admin', 'api'];
+  
+  // Check if it's a reserved word
+  if (reservedWords.includes(boardId.toLowerCase())) {
+    return false;
+  }
+  
+  // In a real app, you might also validate:
+  // - Format (e.g., UUID, numeric ID, etc.)
+  // - Length requirements
+  // - Character restrictions
+  
+  // For now, we'll accept anything that's not a reserved word
+  return true;
+};
+
 export default function BoardPage({ params }: BoardPageProps) {
   // Unwrap the params Promise using React.use()
   const resolvedParams = use(params);
   const { boardId } = resolvedParams;
-
   const router = useRouter();
+
+  // Validate boardId before proceeding
+  useEffect(() => {
+    if (!isValidBoardId(boardId)) {
+      // If boardId is invalid (like "dashboard"), redirect to boards list
+      console.log(`Invalid boardId detected: ${boardId}. Redirecting to boards list.`);
+      router.replace('/boards');
+      return;
+    }
+  }, [boardId, router]);
+
   const [board, setBoard] = useState(mockBoard);
   const [lists, setLists] = useState(mockLists);
   const [showBoardSettings, setShowBoardSettings] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (boardId) {
+    if (boardId && isValidBoardId(boardId)) {
       // In a real app, fetch board and lists data using the resolved boardId
       console.log('Loading board with ID:', boardId);
       // fetchBoard(boardId);
       // fetchLists(boardId);
+      
+      // Simulate loading
+      setTimeout(() => {
+        setLoading(false);
+      }, 100);
     }
-  }, [boardId]); // Now using the resolved boardId
+  }, [boardId]);
+
+  // Don't render anything if boardId is invalid
+  if (!isValidBoardId(boardId)) {
+    return null;
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading board...</p>
+        </div>
+      </div>
+    );
+  }
 
   const getListColor = (color: string) => {
     const colors = {
