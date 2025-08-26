@@ -12,11 +12,10 @@ import {
 import {
   LayoutDashboard,
   Kanban,
-  FileText,
-  Settings,
-  Plus,
   Map,
   Calculator,
+  Settings,
+  Plus,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -43,11 +42,6 @@ const navigation = [
     name: "Budget Tracker",
     href: "/dashboard/budget",
     icon: Calculator,
-  },
-  {
-    name: "Templates",
-    href: "/dashboard/templates",
-    icon: FileText,
   },
   {
     name: "Settings",
@@ -161,8 +155,10 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
             <p className="text-xs text-muted-foreground mb-2">
               Check out our guide to get started with your first trip board.
             </p>
-            <Button variant="outline" size="sm" className="w-full">
-              View Guide
+            <Button asChild variant="outline" size="sm" className="w-full">
+              <Link href="/dashboard/guide">
+                View Guide
+              </Link>
             </Button>
           </div>
         </div>

@@ -1,8 +1,7 @@
 'use client';
 
-import { Suspense, use } from 'react';
+import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import BoardView from '@/features/boards/BoardView';
 
 interface BoardPageProps {
@@ -10,8 +9,11 @@ interface BoardPageProps {
 }
 
 const isValidBoardId = (boardId: string): boolean => {
+  // First check if it's a reserved word that should redirect to boards list
   const reservedWords = ['dashboard', 'create', 'settings', 'profile', 'admin', 'api'];
-  if (reservedWords.includes(boardId.toLowerCase())) return false;
+  if (reservedWords.includes(boardId.toLowerCase())) {
+    return false;
+  }
   
   // Check if it's a valid number
   const numericId = parseInt(boardId, 10);
@@ -21,10 +23,13 @@ const isValidBoardId = (boardId: string): boolean => {
 function BoardPageContent({ boardId }: { boardId: string }) {
   const router = useRouter();
   const [isValidating, setIsValidating] = useState(true);
+  
+  // Memoize the validation result to prevent recalculation
+  const isValid = useMemo(() => isValidBoardId(boardId), [boardId]);
 
   useEffect(() => {
     const validateAndRedirect = () => {
-      if (!isValidBoardId(boardId)) {
+      if (!isValid) {
         console.log(`Invalid boardId detected: ${boardId}. Redirecting to boards list.`);
         router.replace('/boards');
         return;
@@ -33,7 +38,7 @@ function BoardPageContent({ boardId }: { boardId: string }) {
     };
 
     validateAndRedirect();
-  }, [boardId, router]);
+  }, [boardId, router, isValid]);
 
   if (isValidating) {
     return (
@@ -46,7 +51,7 @@ function BoardPageContent({ boardId }: { boardId: string }) {
     );
   }
 
-  if (!isValidBoardId(boardId)) {
+  if (!isValid) {
     return null; // This shouldn't render due to the redirect above
   }
 
@@ -60,11 +65,21 @@ function BoardPageContent({ boardId }: { boardId: string }) {
 export default function BoardPage({ params }: BoardPageProps) {
   const [resolvedParams, setResolvedParams] = useState<{ boardId: string } | null>(null);
   const [paramError, setParamError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const resolveParams = async () => {
       try {
         const resolved = await params;
+        
+        // Check for reserved words immediately after resolving params
+        const reservedWords = ['dashboard', 'create', 'settings', 'profile', 'admin', 'api'];
+        if (reservedWords.includes(resolved.boardId.toLowerCase())) {
+          console.log(`Reserved word detected in boardId: ${resolved.boardId}. Redirecting to boards list.`);
+          router.replace('/boards');
+          return;
+        }
+        
         setResolvedParams(resolved);
       } catch (error) {
         console.error('Failed to resolve params:', error);
@@ -73,7 +88,7 @@ export default function BoardPage({ params }: BoardPageProps) {
     };
 
     resolveParams();
-  }, [params]);
+  }, [params, router]);
 
   if (paramError) {
     return (
@@ -87,7 +102,7 @@ export default function BoardPage({ params }: BoardPageProps) {
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Board</h3>
           <p className="text-gray-600 mb-6">{paramError}</p>
           <button
-            onClick={() => window.location.href = '/boards'}
+            onClick={() => router.push('/boards')}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Back to Boards

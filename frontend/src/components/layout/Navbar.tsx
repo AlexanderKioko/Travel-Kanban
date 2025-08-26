@@ -123,12 +123,34 @@ export function Navbar({ user }: NavbarProps) {
           </DropdownMenu>
 
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="h-9 w-9 relative">
-            <Bell className="h-4 w-4" />
-            <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-              3
-            </span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9 relative">
+                <Bell className="h-4 w-4" />
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  3
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel className="font-normal">Notifications</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="flex flex-col items-start py-2">
+                <p className="font-medium">New board created</p>
+                <p className="text-xs text-muted-foreground">2 hours ago</p>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="flex flex-col items-start py-2">
+                <p className="font-medium">Task assigned to you</p>
+                <p className="text-xs text-muted-foreground">1 day ago</p>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="flex flex-col items-start py-2">
+                <p className="font-medium">Budget updated</p>
+                <p className="text-xs text-muted-foreground">3 days ago</p>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-center text-sm text-muted-foreground">View all notifications</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* User Menu - Only render if user exists */}
           {user && (

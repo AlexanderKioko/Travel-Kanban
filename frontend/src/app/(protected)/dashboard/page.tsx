@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Plus, Calendar, CreditCard, CheckSquare, Users, TrendingUp, MapPin } from 'lucide-react';
 import { useSession } from '@/store/useSession';
@@ -7,17 +7,30 @@ import { useGetBoards } from '@/features/boards/hooks';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
+interface DashboardStats {
+  totalBoards: number;
+  activeTrips: number;
+  totalBudget: number;
+  completedTasks: number;
+  upcomingTasks: number;
+  totalMembers: number;
+}
+
 export default function DashboardPage() {
   const { user } = useSession();
   const { data: boards = [], isLoading, error } = useGetBoards();
-  const [stats, setStats] = useState({
+  
+  // Initialize stats with useMemo to prevent object recreation
+  const initialStats: DashboardStats = useMemo(() => ({
     totalBoards: 0,
     activeTrips: 0,
     totalBudget: 0,
     completedTasks: 0,
     upcomingTasks: 0,
     totalMembers: 0,
-  });
+  }), []);
+
+  const [stats, setStats] = useState<DashboardStats>(initialStats);
   const [recentBoards, setRecentBoards] = useState<(typeof boards)[0][]>([]);
   const [upcomingTasks, setUpcomingTasks] = useState<
     { id: number; title: string; board: string; dueDate: string }[]
@@ -29,23 +42,25 @@ export default function DashboardPage() {
     return fullName.split(' ')[0];
   };
 
+  // Show error toast only once when error changes
   useEffect(() => {
     if (error) {
       console.error('Dashboard data loading error:', error);
       toast.error('Failed to load dashboard data');
     }
-  }, [error]);
+  }, [error]); // Only depend on error
 
+  // Calculate stats when boards data changes
   useEffect(() => {
     // Add safety checks to prevent crashes with invalid data
-    if (!boards || !Array.isArray(boards)) {
+    if (!Array.isArray(boards)) {
       console.log('Boards data is not available or invalid:', boards);
       return;
     }
 
     if (boards.length > 0) {
       try {
-        const calculatedStats = {
+        const calculatedStats: DashboardStats = {
           totalBoards: boards.length,
           activeTrips: boards.filter((b) => b?.status === 'active').length,
           totalBudget: boards.reduce((sum, b) => {
@@ -120,19 +135,12 @@ export default function DashboardPage() {
         toast.error('Error processing dashboard data');
       }
     } else {
-      // Reset stats when no boards
-      setStats({
-        totalBoards: 0,
-        activeTrips: 0,
-        totalBudget: 0,
-        completedTasks: 0,
-        upcomingTasks: 0,
-        totalMembers: 0,
-      });
+      // Reset stats when no boards - use the memoized initial stats
+      setStats(initialStats);
       setRecentBoards([]);
       setUpcomingTasks([]);
     }
-  }, [boards]);
+  }, [boards, initialStats]); // Include initialStats in dependencies
 
   const getStatusColor = (status: string) => {
     switch (status) {

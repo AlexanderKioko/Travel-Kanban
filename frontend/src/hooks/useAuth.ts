@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { apiClient, tokenManager, User as ApiUser, AuthResponse as ApiAuthResponse } from '@/lib/api';
+import { apiClient, tokenManager, User as ApiUser } from '@/lib/api';
 import { useSession } from '@/store/useSession';
 
 // --- Types ---
@@ -182,7 +182,7 @@ export function useAuth(): AuthState & AuthActions {
     };
 
     initializeAuth();
-  }, []); // Empty dependency array to run only once
+  }, [setUser, clearUser]); // Only depend on stable functions
 
   // --- Actions ---
   const login = useCallback(
@@ -227,12 +227,11 @@ export function useAuth(): AuthState & AuthActions {
           throw new Error('Password must be at least 8 characters long');
         }
 
-        // Send the full_name as expected by the Django backend
         const response = await makeApiCall(() => 
           apiClient.register({
             username: data.username,
             email: data.email,
-            full_name: data.name, // Send as full_name instead of splitting
+            full_name: data.name,
             password: data.password,
             password_confirm: data.password_confirm,
           })

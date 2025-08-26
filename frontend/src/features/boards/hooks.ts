@@ -8,6 +8,42 @@ const getHeaders = (token: string | null) => ({
   ...(token ? { Authorization: `Bearer ${token}` } : {}),
 });
 
+// Enhanced API call wrapper with better error handling
+const makeApiCall = async <T>(apiCall: () => Promise<Response>): Promise<T> => {
+  try {
+    const response = await apiCall();
+    
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      
+      try {
+        const errorData = await response.json();
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+      } catch (parseError) {
+        // If JSON parsing fails, use the default error message
+        console.warn('Failed to parse error response:', parseError);
+      }
+      
+      const error = new Error(errorMessage);
+      (error as any).status = response.status;
+      throw error;
+    }
+    
+    return await response.json();
+  } catch (error) {
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    throw error;
+  }
+};
+
 export interface User {
   id: number;
   username: string;
@@ -86,18 +122,45 @@ export interface BudgetSummary {
   by_category: { category: string; total: string }[];
 }
 
-// Fetch all boards
+// Fetch all boards with error handling and empty array fallback
 export const useGetBoards = () => {
   return useQuery<Board[]>({
     queryKey: ['boards'],
     queryFn: async () => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/`, {
-        headers: getHeaders(token),
-      });
-      if (!response.ok) throw new Error('Failed to fetch boards');
-      return response.json();
+      
+      // If no token, return empty array instead of making API call
+      if (!token) {
+        console.warn('No access token available for fetching boards');
+        return [];
+      }
+
+      try {
+        return await makeApiCall(() => 
+          fetch(`${API_BASE_URL}/boards/`, {
+            headers: getHeaders(token),
+          })
+        );
+      } catch (error: any) {
+        if (error.status === 404) {
+          // Treat 404 as no boards available (for new users)
+          return [];
+        }
+        throw error;
+      }
     },
+    // Add default data and error handling
+    placeholderData: [],
+    retry: (failureCount, error: any) => {
+      // Don't retry on authentication errors
+      if (error?.status === 401 || error?.status === 403) {
+        return false;
+      }
+      // Retry up to 2 times for other errors
+      return failureCount < 2;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -107,11 +170,23 @@ export const useGetBoard = (boardId: string | number) => {
     queryKey: ['board', boardId],
     queryFn: async () => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/`, {
-        headers: getHeaders(token),
-      });
-      if (!response.ok) throw new Error('Failed to fetch board');
-      return response.json();
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/${boardId}/`, {
+          headers: getHeaders(token),
+        })
+      );
+    },
+    enabled: !!boardId && !!tokenManager.getAccessToken(),
+    retry: (failureCount, error: any) => {
+      if (error?.status === 401 || error?.status === 403 || error?.status === 404) {
+        return false;
+      }
+      return failureCount < 2;
     },
   });
 };
@@ -122,37 +197,53 @@ export const useCreateBoard = () => {
   return useMutation<Board, Error, Partial<Board>>({
     mutationFn: async (data) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/`, {
-        method: 'POST',
-        headers: getHeaders(token),
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to create board');
-      return response.json();
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/`, {
+          method: 'POST',
+          headers: getHeaders(token),
+          body: JSON.stringify(data),
+        })
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boards'] });
     },
+    onError: (error) => {
+      console.error('Failed to create board:', error);
+    },
   });
 };
 
-// Update board - Changed to accept object with boardId and data
+// Update board - Fixed to accept object with boardId and data
 export const useUpdateBoard = () => {
   const queryClient = useQueryClient();
   return useMutation<Board, Error, { boardId: string | number; data: Partial<Board> }>({
     mutationFn: async ({ boardId, data }) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/`, {
-        method: 'PATCH',
-        headers: getHeaders(token),
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to update board');
-      return response.json();
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/${boardId}/`, {
+          method: 'PATCH',
+          headers: getHeaders(token),
+          body: JSON.stringify(data),
+        })
+      );
     },
     onSuccess: (updatedBoard, { boardId }) => {
       queryClient.setQueryData(['board', boardId], updatedBoard);
       queryClient.invalidateQueries({ queryKey: ['boards'] });
+    },
+    onError: (error) => {
+      console.error('Failed to update board:', error);
     },
   });
 };
@@ -163,14 +254,23 @@ export const useDeleteBoard = () => {
   return useMutation<void, Error, string | number>({
     mutationFn: async (boardId) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/`, {
-        method: 'DELETE',
-        headers: getHeaders(token),
-      });
-      if (!response.ok) throw new Error('Failed to delete board');
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/${boardId}/`, {
+          method: 'DELETE',
+          headers: getHeaders(token),
+        })
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boards'] });
+    },
+    onError: (error) => {
+      console.error('Failed to delete board:', error);
     },
   });
 };
@@ -181,13 +281,18 @@ export const useCreateList = (boardId: string | number) => {
   return useMutation<List, Error, Partial<List>>({
     mutationFn: async (data) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/lists/`, {
-        method: 'POST',
-        headers: getHeaders(token),
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to create list');
-      return response.json();
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/${boardId}/lists/`, {
+          method: 'POST',
+          headers: getHeaders(token),
+          body: JSON.stringify(data),
+        })
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });
@@ -201,13 +306,18 @@ export const useUpdateList = (boardId: string | number, listId: string | number)
   return useMutation<List, Error, Partial<List>>({
     mutationFn: async (data) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/lists/${listId}/`, {
-        method: 'PATCH',
-        headers: getHeaders(token),
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to update list');
-      return response.json();
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/${boardId}/lists/${listId}/`, {
+          method: 'PATCH',
+          headers: getHeaders(token),
+          body: JSON.stringify(data),
+        })
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });
@@ -221,11 +331,17 @@ export const useDeleteList = (boardId: string | number) => {
   return useMutation<void, Error, string | number>({
     mutationFn: async (listId) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/lists/${listId}/`, {
-        method: 'DELETE',
-        headers: getHeaders(token),
-      });
-      if (!response.ok) throw new Error('Failed to delete list');
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/${boardId}/lists/${listId}/`, {
+          method: 'DELETE',
+          headers: getHeaders(token),
+        })
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });
@@ -239,13 +355,18 @@ export const useCreateCard = (boardId: string | number, listId: string | number)
   return useMutation<Card, Error, Partial<Card>>({
     mutationFn: async (data) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/lists/${listId}/cards/`, {
-        method: 'POST',
-        headers: getHeaders(token),
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to create card');
-      return response.json();
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/${boardId}/lists/${listId}/cards/`, {
+          method: 'POST',
+          headers: getHeaders(token),
+          body: JSON.stringify(data),
+        })
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });
@@ -259,13 +380,18 @@ export const useUpdateCard = (boardId: string | number, listId: string | number,
   return useMutation<Card, Error, Partial<Card>>({
     mutationFn: async (data) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/lists/${listId}/cards/${cardId}/`, {
-        method: 'PATCH',
-        headers: getHeaders(token),
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to update card');
-      return response.json();
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/${boardId}/lists/${listId}/cards/${cardId}/`, {
+          method: 'PATCH',
+          headers: getHeaders(token),
+          body: JSON.stringify(data),
+        })
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });
@@ -279,11 +405,17 @@ export const useDeleteCard = (boardId: string | number, listId: string | number)
   return useMutation<void, Error, string | number>({
     mutationFn: async (cardId) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/lists/${listId}/cards/${cardId}/`, {
-        method: 'DELETE',
-        headers: getHeaders(token),
-      });
-      if (!response.ok) throw new Error('Failed to delete card');
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/${boardId}/lists/${listId}/cards/${cardId}/`, {
+          method: 'DELETE',
+          headers: getHeaders(token),
+        })
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });
@@ -297,13 +429,18 @@ export const useMoveCard = () => {
   return useMutation<Card, Error, { cardId: number; new_list_id?: number; new_position: number; boardId: number }>({
     mutationFn: async ({ cardId, new_list_id, new_position }) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/cards/${cardId}/move/`, {
-        method: 'PATCH',
-        headers: getHeaders(token),
-        body: JSON.stringify({ new_list_id, new_position }),
-      });
-      if (!response.ok) throw new Error('Failed to move card');
-      return response.json();
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/cards/${cardId}/move/`, {
+          method: 'PATCH',
+          headers: getHeaders(token),
+          body: JSON.stringify({ new_list_id, new_position }),
+        })
+      );
     },
     onSuccess: (_, { boardId }) => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });
@@ -317,12 +454,18 @@ export const useBoardBudgetSummary = (boardId: string | number) => {
     queryKey: ['board', boardId, 'budget-summary'],
     queryFn: async () => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/budget/summary/`, {
-        headers: getHeaders(token),
-      });
-      if (!response.ok) throw new Error('Failed to fetch budget summary');
-      return response.json();
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/${boardId}/budget/summary/`, {
+          headers: getHeaders(token),
+        })
+      );
     },
+    enabled: !!boardId && !!tokenManager.getAccessToken(),
   });
 };
 
@@ -338,12 +481,18 @@ export const useExpenses = (boardId: string | number, filters?: { category?: str
     queryKey: ['board', boardId, 'expenses', filters || {}],
     queryFn: async () => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/expenses/${queryString}`, {
-        headers: getHeaders(token),
-      });
-      if (!response.ok) throw new Error('Failed to fetch expenses');
-      return response.json();
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/${boardId}/expenses/${queryString}`, {
+          headers: getHeaders(token),
+        })
+      );
     },
+    enabled: !!boardId && !!tokenManager.getAccessToken(),
   });
 };
 
@@ -353,13 +502,18 @@ export const useCreateExpense = (boardId: string | number) => {
   return useMutation<Expense, Error, Partial<Expense>>({
     mutationFn: async (data) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/expenses/`, {
-        method: 'POST',
-        headers: getHeaders(token),
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to create expense');
-      return response.json();
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/boards/${boardId}/expenses/`, {
+          method: 'POST',
+          headers: getHeaders(token),
+          body: JSON.stringify(data),
+        })
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId, 'expenses'] });
@@ -374,13 +528,18 @@ export const useUpdateExpense = () => {
   return useMutation<Expense, Error, { expenseId: number; data: Partial<Expense>; boardId: number }>({
     mutationFn: async ({ expenseId, data }) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/expenses/${expenseId}/`, {
-        method: 'PATCH',
-        headers: getHeaders(token),
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to update expense');
-      return response.json();
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/expenses/${expenseId}/`, {
+          method: 'PATCH',
+          headers: getHeaders(token),
+          body: JSON.stringify(data),
+        })
+      );
     },
     onSuccess: (_, { boardId }) => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId, 'expenses'] });
@@ -395,11 +554,17 @@ export const useDeleteExpense = () => {
   return useMutation<void, Error, { expenseId: number; boardId: number }>({
     mutationFn: async ({ expenseId }) => {
       const token = tokenManager.getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/expenses/${expenseId}/`, {
-        method: 'DELETE',
-        headers: getHeaders(token),
-      });
-      if (!response.ok) throw new Error('Failed to delete expense');
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      return makeApiCall(() => 
+        fetch(`${API_BASE_URL}/expenses/${expenseId}/`, {
+          method: 'DELETE',
+          headers: getHeaders(token),
+        })
+      );
     },
     onSuccess: (_, { boardId }) => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId, 'expenses'] });
