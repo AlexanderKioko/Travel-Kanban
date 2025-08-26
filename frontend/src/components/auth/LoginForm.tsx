@@ -110,16 +110,6 @@ export function LoginForm() {
           )}
         />
 
-        {/* Forgot Password Link */}
-        <div className="flex justify-end">
-          <button
-            type="button"
-            className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors duration-200 cursor-pointer bg-transparent border-none"
-          >
-            Forgot your password?
-          </button>
-        </div>
-
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
             {error}
