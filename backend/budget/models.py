@@ -1,6 +1,7 @@
 from django.db import models
 from boards.models import Board
 from users.models import User
+from django.utils import timezone 
 
 CATEGORY_CHOICES = [
     ('travel', 'Travel/Flight'),
@@ -28,7 +29,7 @@ class Expense(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.date:
-            self.date = models.functions.Now()  
+            self.date = timezone.now().date()  # Fixed: Use date instead of datetime
         if not self.currency:
             self.currency = self.board.currency
         super().save(*args, **kwargs)
