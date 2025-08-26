@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { apiClient, tokenManager, User as ApiUser, AuthResponse as ApiAuthResponse } from '@/lib/api';
@@ -138,16 +138,23 @@ export function useAuth(): AuthState & AuthActions {
   });
   const router = useRouter();
   const { setUser, clearUser } = useSession();
+  const initializingRef = useRef(false);
 
   // Initialize auth state
   useEffect(() => {
+    // Prevent multiple initialization calls
+    if (initializingRef.current) return;
+    initializingRef.current = true;
+
     const initializeAuth = async () => {
-      const hasToken = !!tokenManager.getAccessToken();
-      if (!hasToken) {
-        setState((prev) => ({ ...prev, loading: false }));
-        return;
-      }
       try {
+        const hasToken = !!tokenManager.getAccessToken();
+        if (!hasToken) {
+          setState((prev) => ({ ...prev, loading: false }));
+          initializingRef.current = false;
+          return;
+        }
+
         const response = await makeApiCall(() => apiClient.getCurrentUser());
         setState({
           user: response.user,
@@ -155,19 +162,27 @@ export function useAuth(): AuthState & AuthActions {
           error: null,
           isAuthenticated: true,
         });
+        
+        // Update session store
+        const sessionUser = mapApiUserToSessionUser(response.user);
+        setUser(sessionUser, tokenManager.getAccessToken()!);
       } catch (error) {
         console.error('Failed to get current user:', error);
         tokenManager.clearTokens();
+        clearUser();
         setState({
           user: null,
           loading: false,
           error: null,
           isAuthenticated: false,
         });
+      } finally {
+        initializingRef.current = false;
       }
     };
+
     initializeAuth();
-  }, []);
+  }, []); // Empty dependency array to run only once
 
   // --- Actions ---
   const login = useCallback(
@@ -185,7 +200,11 @@ export function useAuth(): AuthState & AuthActions {
           isAuthenticated: true,
         });
         toast.success('Welcome back!');
-        router.push('/dashboard'); // Redirect directly to dashboard
+        
+        // Use setTimeout to prevent navigation issues during render
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 100);
       } catch (error: any) {
         const errorMessage = error.message || 'Login failed. Please check your credentials.';
         setState((prev) => ({ ...prev, loading: false, error: errorMessage }));
@@ -209,7 +228,6 @@ export function useAuth(): AuthState & AuthActions {
         }
 
         // Send the full_name as expected by the Django backend
-        // The backend will handle splitting it into first_name and last_name
         const response = await makeApiCall(() => 
           apiClient.register({
             username: data.username,
@@ -230,7 +248,11 @@ export function useAuth(): AuthState & AuthActions {
           isAuthenticated: true,
         });
         toast.success('Account created successfully!');
-        router.push('/dashboard'); // Redirect directly to dashboard
+        
+        // Use setTimeout to prevent navigation issues during render
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 100);
       } catch (error: any) {
         const errorMessage = error.message || 'Registration failed. Please try again.';
         setState((prev) => ({ ...prev, loading: false, error: errorMessage }));
@@ -257,13 +279,19 @@ export function useAuth(): AuthState & AuthActions {
       isAuthenticated: false,
     });
     toast.success('Logged out successfully');
-    router.push('/login');
+    
+    // Use setTimeout to prevent navigation issues during render
+    setTimeout(() => {
+      router.push('/login');
+    }, 100);
   }, [router, clearUser]);
 
   const refreshUser = useCallback(async () => {
     if (!tokenManager.getAccessToken()) return;
     try {
       const response = await makeApiCall(() => apiClient.getCurrentUser());
+      const sessionUser = mapApiUserToSessionUser(response.user);
+      setUser(sessionUser, tokenManager.getAccessToken()!);
       setState((prev) => ({
         ...prev,
         user: response.user,
@@ -271,13 +299,15 @@ export function useAuth(): AuthState & AuthActions {
       }));
     } catch (error) {
       console.error('Failed to refresh user:', error);
+      tokenManager.clearTokens();
+      clearUser();
       setState((prev) => ({
         ...prev,
         user: null,
         isAuthenticated: false,
       }));
     }
-  }, []);
+  }, [setUser, clearUser]);
 
   const clearError = useCallback(() => {
     setState((prev) => ({ ...prev, error: null }));

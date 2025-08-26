@@ -136,11 +136,11 @@ export const useCreateBoard = () => {
   });
 };
 
-// Update board
-export const useUpdateBoard = (boardId: string | number) => {
+// Update board - Changed to accept object with boardId and data
+export const useUpdateBoard = () => {
   const queryClient = useQueryClient();
-  return useMutation<Board, Error, Partial<Board>>({
-    mutationFn: async (data) => {
+  return useMutation<Board, Error, { boardId: string | number; data: Partial<Board> }>({
+    mutationFn: async ({ boardId, data }) => {
       const token = tokenManager.getAccessToken();
       const response = await fetch(`${API_BASE_URL}/boards/${boardId}/`, {
         method: 'PATCH',
@@ -150,7 +150,7 @@ export const useUpdateBoard = (boardId: string | number) => {
       if (!response.ok) throw new Error('Failed to update board');
       return response.json();
     },
-    onSuccess: (updatedBoard) => {
+    onSuccess: (updatedBoard, { boardId }) => {
       queryClient.setQueryData(['board', boardId], updatedBoard);
       queryClient.invalidateQueries({ queryKey: ['boards'] });
     },
