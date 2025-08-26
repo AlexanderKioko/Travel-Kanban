@@ -68,16 +68,16 @@ export function RegisterForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Full Name</FormLabel>
+              <FormLabel className="text-slate-700 font-medium text-sm">Full Name</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Your full name"
                   {...field}
                   disabled={loading}
-                  className="bg-white/90 border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-500 relative z-10"
+                  className="bg-white/95 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-400 relative z-10 h-12 px-4 rounded-lg transition-all duration-200 hover:border-slate-400"
                 />
               </FormControl>
-              <FormMessage className="text-red-600" />
+              <FormMessage className="text-red-500 text-sm mt-1" />
             </FormItem>
           )}
         />
@@ -86,16 +86,16 @@ export function RegisterForm() {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Username</FormLabel>
+              <FormLabel className="text-slate-700 font-medium text-sm">Username</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Choose a username"
                   {...field}
                   disabled={loading}
-                  className="bg-white/90 border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-500 relative z-10"
+                  className="bg-white/95 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-400 relative z-10 h-12 px-4 rounded-lg transition-all duration-200 hover:border-slate-400"
                 />
               </FormControl>
-              <FormMessage className="text-red-600" />
+              <FormMessage className="text-red-500 text-sm mt-1" />
             </FormItem>
           )}
         />
@@ -104,17 +104,17 @@ export function RegisterForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Email</FormLabel>
+              <FormLabel className="text-slate-700 font-medium text-sm">Email Address</FormLabel>
               <FormControl>
                 <Input
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="Enter your email address"
                   {...field}
                   disabled={loading}
-                  className="bg-white/90 border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-500 relative z-10"
+                  className="bg-white/95 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-400 relative z-10 h-12 px-4 rounded-lg transition-all duration-200 hover:border-slate-400"
                 />
               </FormControl>
-              <FormMessage className="text-red-600" />
+              <FormMessage className="text-red-500 text-sm mt-1" />
             </FormItem>
           )}
         />
@@ -123,31 +123,32 @@ export function RegisterForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Password</FormLabel>
+              <FormLabel className="text-slate-700 font-medium text-sm">Password</FormLabel>
               <FormControl>
-                <div className="relative">
+                <div className="relative z-20">
                   <Input
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••"
+                    placeholder="Enter your password"
                     {...field}
                     disabled={loading}
-                    className="bg-white/90 border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-500 relative z-10 pr-10"
+                    className="bg-white/95 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-400 h-12 px-4 pr-12 rounded-lg transition-all duration-200 hover:border-slate-400"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer z-20"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors duration-200 cursor-pointer focus:outline-none focus:text-slate-700 z-30"
                     disabled={loading}
+                    tabIndex={-1}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
+                      <EyeOff className="h-5 w-5" />
                     ) : (
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-5 w-5" />
                     )}
                   </button>
                 </div>
               </FormControl>
-              <FormMessage className="text-red-600" />
+              <FormMessage className="text-red-500 text-sm mt-1" />
             </FormItem>
           )}
         />
@@ -156,62 +157,55 @@ export function RegisterForm() {
           name="password_confirm"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Confirm Password</FormLabel>
+              <FormLabel className="text-slate-700 font-medium text-sm">Confirm Password</FormLabel>
               <FormControl>
-                <div className="relative">
+                <div className="relative z-20">
                   <Input
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="••••••"
+                    placeholder="Confirm your password"
                     {...field}
                     disabled={loading}
-                    className="bg-white/90 border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-500 relative z-10 pr-10"
+                    className="bg-white/95 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-400 h-12 px-4 pr-12 rounded-lg transition-all duration-200 hover:border-slate-400"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer z-20"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors duration-200 cursor-pointer focus:outline-none focus:text-slate-700 z-30"
                     disabled={loading}
+                    tabIndex={-1}
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
+                      <EyeOff className="h-5 w-5" />
                     ) : (
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-5 w-5" />
                     )}
                   </button>
                 </div>
               </FormControl>
-              <FormMessage className="text-red-600" />
+              <FormMessage className="text-red-500 text-sm mt-1" />
             </FormItem>
           )}
         />
         
-        {/* Enhanced error display */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">
-                  Registration Error
-                </h3>
-                <div className="mt-2 text-sm text-red-700">
-                  {error}
-                </div>
-              </div>
-            </div>
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+            {error}
           </div>
         )}
 
         <Button 
           type="submit" 
-          disabled={loading} 
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 relative z-10 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 h-12 relative z-10 transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:hover:scale-100 disabled:opacity-70"
+          disabled={loading}
         >
-          {loading ? "Creating account..." : "Create account"}
+          {loading ? (
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Creating account...</span>
+            </div>
+          ) : (
+            "Create account"
+          )}
         </Button>
       </form>
     </Form>
