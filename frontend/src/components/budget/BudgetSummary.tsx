@@ -1,39 +1,52 @@
-import React from 'react';
-import { useBoardBudgetSummary } from '@/features/boards/hooks';
+import React, { memo, useCallback } from 'react';
+import { useBoardBudgetSummary, useGetBoard } from '@/features/boards/hooks';
+import { Button } from '@/components/ui/button';
 
 interface BudgetSummaryProps {
   boardId: number;
-  onAddExpense: () => void;  // Callback to open add expense form/modal
-  onViewAll: () => void;     // Callback to view all expenses
+  onAddExpense: () => void;
+  onViewAll: () => void;
 }
 
 const BudgetSummary: React.FC<BudgetSummaryProps> = ({ boardId, onAddExpense, onViewAll }) => {
-  const { data, isLoading, error } = useBoardBudgetSummary(boardId);
+  const { data: summary, isLoading: summaryLoading, error: summaryError } = useBoardBudgetSummary(boardId);
+  const { data: board, isLoading: boardLoading, error: boardError } = useGetBoard(boardId);
 
-  if (isLoading) return <div>Loading budget summary...</div>;
-  if (error) return <div>Error loading budget summary: {error.message}</div>;
-  if (!data) return <div>No budget data available.</div>;
+  if (summaryLoading || boardLoading) return <div aria-live="polite">Loading budget summary...</div>;
+  if (summaryError || boardError) {
+    const errorMessage = summaryError?.message || boardError?.message || 'Unknown error';
+    return <div aria-live="assertive">Error loading budget summary: {errorMessage}</div>;
+  }
+  if (!summary || !board) return <div aria-live="polite">No budget data available.</div>;
+
+  const formatCurrency = useCallback((amount: string, currency: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+    }).format(parseFloat(amount));
+  }, []);
 
   return (
-    <div className="p-4 border rounded-lg shadow-md">
+    <div className="p-4 border rounded-lg shadow-md" role="region" aria-label="Budget Summary">
       <h2 className="text-xl font-bold mb-4">Budget Summary</h2>
-      <p>Planned Budget: {data.board_budget} {data.by_category[0]?.total ? data.by_category[0].total.split('.')[0].replace(/\d{3}(?=\d)/g, '$&,') : ''}</p>
-      <p>Actual Spend: {data.actual_spend_total}</p>
-      <p>Remaining: {data.remaining}</p>
+      <p>Planned Budget: {formatCurrency(summary.board_budget, board.currency)}</p>
+      <p>Actual Spend: {formatCurrency(summary.actual_spend_total, board.currency)}</p>
+      <p>Remaining: {formatCurrency(summary.remaining, board.currency)}</p>
       <div className="mt-4">
         <h3 className="font-semibold">By Category:</h3>
         <ul>
-          {data.by_category.map((cat, index) => (
-            <li key={index}>{cat.category}: {cat.total}</li>
+          {summary.by_category.map((cat, index) => (
+            <li key={index}>{cat.category}: {formatCurrency(cat.total, board.currency)}</li>
           ))}
         </ul>
       </div>
       <div className="mt-4 flex space-x-4">
-        <button onClick={onAddExpense} className="bg-blue-500 text-white px-4 py-2 rounded">Add Expense</button>
-        <button onClick={onViewAll} className="bg-gray-500 text-white px-4 py-2 rounded">View All</button>
+        <Button onClick={onAddExpense} aria-label="Add new expense">Add Expense</Button>
+        <Button onClick={onViewAll} variant="secondary" aria-label="View all expenses">View All</Button>
       </div>
     </div>
   );
 };
 
-export default BudgetSummary;
+export default memo(BudgetSummary);
