@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -27,34 +28,50 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+
+// Mock fetch for notifications (replace with real API, e.g., fetch('/api/notifications'))
+const fetchNotifications = async () => {
+  // Simulate API response
+  return [
+    { id: 1, title: "New board created", time: "2 hours ago" },
+    { id: 2, title: "Task assigned to you", time: "1 day ago" },
+    { id: 3, title: "Budget updated", time: "3 days ago" },
+  ];
+};
 
 interface NavbarProps {
   user: User | null;
 }
 
-export function Navbar({ user }: NavbarProps) {
+const Navbar = memo(function Navbar({ user }: NavbarProps) {
   const { theme, setTheme } = useTheme();
   const { toggleSidebar } = useUI();
-  const { logout, loading } = useAuth(); // Use useAuth hook
+  const { logout, loading } = useAuth();
   const router = useRouter();
 
-  const handleLogout = async () => {
+  const { data: notifications = [] } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: fetchNotifications,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const handleLogout = useCallback(async () => {
     try {
       await logout();
-      // The logout function in useAuth already handles navigation and clearing user
     } catch (error) {
       console.error('Logout failed:', error);
     }
-  };
+  }, [logout]);
 
-  const getUserInitials = (name: string) => {
+  const getUserInitials = useCallback((name: string) => {
     return name
       .split(" ")
       .map((word) => word.charAt(0))
       .join("")
       .toUpperCase()
       .slice(0, 2);
-  };
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -127,28 +144,32 @@ export function Navbar({ user }: NavbarProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9 relative">
                 <Bell className="h-4 w-4" />
-                <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  3
-                </span>
+                {notifications.length > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {notifications.length}
+                  </span>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel className="font-normal">Notifications</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex flex-col items-start py-2">
-                <p className="font-medium">New board created</p>
-                <p className="text-xs text-muted-foreground">2 hours ago</p>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex flex-col items-start py-2">
-                <p className="font-medium">Task assigned to you</p>
-                <p className="text-xs text-muted-foreground">1 day ago</p>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex flex-col items-start py-2">
-                <p className="font-medium">Budget updated</p>
-                <p className="text-xs text-muted-foreground">3 days ago</p>
-              </DropdownMenuItem>
+              {notifications.length > 0 ? (
+                notifications.map((notif) => (
+                  <DropdownMenuItem key={notif.id} className="flex flex-col items-start py-2">
+                    <p className="font-medium">{notif.title}</p>
+                    <p className="text-xs text-muted-foreground">{notif.time}</p>
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <DropdownMenuItem className="text-center text-sm text-muted-foreground py-2">
+                  No new notifications
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-center text-sm text-muted-foreground">View all notifications</DropdownMenuItem>
+              <DropdownMenuItem className="text-center text-sm text-muted-foreground">
+                View all notifications
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -168,7 +189,7 @@ export function Navbar({ user }: NavbarProps) {
                   </span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56" forceMount>
+              <DropdownMenuContent align="end" className="w-56"> {/* Removed forceMount */}
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
@@ -208,4 +229,6 @@ export function Navbar({ user }: NavbarProps) {
       </div>
     </header>
   );
-}
+});
+
+export { Navbar };
