@@ -1,85 +1,99 @@
-from rest_framework import generics, permissions, status, serializers
+from rest_framework import generics, permissions, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
-from .models import Budget, BudgetItem, BudgetCategory
-from .serializers import BudgetSerializer, BudgetItemSerializer, BudgetCategorySerializer
+from django.db.models import Sum, Q
+from decimal import Decimal
+from .models import Expense
+from .serializers import ExpenseSerializer
 from boards.models import Board
+from boards.permissions import IsBoardOwnerOrMember
 
-class BudgetCategoryListCreateView(generics.ListCreateAPIView):
-    serializer_class = BudgetCategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+class ExpenseListCreateView(generics.ListCreateAPIView):
+    serializer_class = ExpenseSerializer
+    permission_classes = [permissions.IsAuthenticated, IsBoardOwnerOrMember]
 
     def get_queryset(self):
-        return BudgetCategory.objects.filter(owner=self.request.user)
+        board = get_object_or_404(Board, pk=self.kwargs['board_id'])
+        self.check_object_permissions(self.request, board)
+        queryset = Expense.objects.filter(board=board)
+        
+        # Apply filters
+        category = self.request.query_params.get('category')
+        date_from = self.request.query_params.get('date_from')
+        date_to = self.request.query_params.get('date_to')
+        
+        if category:
+            queryset = queryset.filter(category=category)
+        if date_from:
+            queryset = queryset.filter(date__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(date__lte=date_to)
+        if date_from and date_to and date_from > date_to:
+            raise ValidationError("date_from must be before or equal to date_to")
+        
+        return queryset
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        board = get_object_or_404(Board, pk=self.kwargs['board_id'])
+        self.check_object_permissions(self.request, board)
+        serializer.save(
+            board=board,
+            created_by=self.request.user,
+            currency=board.currency
+        )
 
-class BudgetCategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = BudgetCategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['board'] = get_object_or_404(Board, pk=self.kwargs['board_id'])
+        return context
 
-    def get_queryset(self):
-        return BudgetCategory.objects.filter(owner=self.request.user)
-
-class BudgetListCreateView(generics.ListCreateAPIView):
-    serializer_class = BudgetSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        user_boards = self.request.user.boards.all()
-        return Budget.objects.filter(board__in=user_boards)
-
-    def perform_create(self, serializer):
-        board_id = self.request.data.get('board')
-        try:
-            board = Board.objects.get(id=board_id)
-        except Board.DoesNotExist:
-            # Use the imported 'serializers' module here
-            raise serializers.ValidationError({"board": "Board not found."}) 
-
-        if board.owner != self.request.user:
-            raise PermissionDenied("You don't have permission to create a budget for this board.")
-
-        serializer.save(board=board)
-
-class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = BudgetSerializer
-    permission_classes = [permissions.IsAuthenticated]
+class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ExpenseSerializer
+    permission_classes = [permissions.IsAuthenticated, IsBoardOwnerOrMember]
 
     def get_queryset(self):
-        user_boards = self.request.user.boards.all()
-        return Budget.objects.filter(board__in=user_boards)
+        return Expense.objects.all()
 
-class BudgetItemListCreateView(generics.ListCreateAPIView):
-    serializer_class = BudgetItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    def get_object(self):
+        obj = get_object_or_404(Expense, pk=self.kwargs['pk'])
+        self.check_object_permissions(self.request, obj)
+        return obj
 
-    def get_queryset(self):
-        user_boards = self.request.user.boards.all()
-        budgets = Budget.objects.filter(board__in=user_boards)
-        return BudgetItem.objects.filter(budget__in=budgets)
-
-    def perform_create(self, serializer):
-        budget_id = self.request.data.get('budget')
-        try:
-            budget = Budget.objects.get(id=budget_id)
-        except Budget.DoesNotExist:
-            # Use the imported 'serializers' module here
-            raise serializers.ValidationError({"budget": "Budget not found."})
-
-        # Check if the user owns the board associated with the budget
-        if budget.board.owner != self.request.user:
-            raise PermissionDenied("You don't have permission to add items to this budget.")
-
+    def perform_update(self, serializer):
+        board = serializer.instance.board
+        if 'currency' in serializer.validated_data and serializer.validated_data['currency'] != board.currency:
+            raise ValidationError("Currency must match the board's currency.")
         serializer.save()
 
-class BudgetItemDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = BudgetItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if self.get_object():
+            context['board'] = self.get_object().board
+        return context
 
-    def get_queryset(self):
-        user_boards = self.request.user.boards.all()
-        budgets = Budget.objects.filter(board__in=user_boards)
-        return BudgetItem.objects.filter(budget__in=budgets)
+class BoardBudgetSummaryView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsBoardOwnerOrMember]
+
+    def get_object(self):
+        board = get_object_or_404(Board, pk=self.kwargs['board_id'])
+        self.check_object_permissions(self.request, board)
+        return board
+
+    def retrieve(self, request, *args, **kwargs):
+        board = self.get_object()
+        expenses = board.expenses.all()
+        actual_spend_total = expenses.aggregate(total=Sum('amount'))['total'] or Decimal(0.00)
+        remaining = max(board.budget - actual_spend_total, Decimal(0.00))
+        by_category = expenses.values('category').annotate(total=Sum('amount')).order_by('category')
+        by_category_list = [
+            {'category': item['category'], 'total': str(item['total']) if item['total'] else '0.00'}
+            for item in by_category
+        ]
+
+        return Response({
+            'board_budget': str(board.budget),
+            'actual_spend_total': str(actual_spend_total),
+            'remaining': str(remaining),
+            'by_category': by_category_list,
+        })

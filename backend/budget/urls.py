@@ -2,10 +2,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('categories/', views.BudgetCategoryListCreateView.as_view(), name='budget-category-list'),
-    path('categories/<int:pk>/', views.BudgetCategoryDetailView.as_view(), name='budget-category-detail'),
-    path('', views.BudgetListCreateView.as_view(), name='budget-list'),
-    path('<int:pk>/', views.BudgetDetailView.as_view(), name='budget-detail'),
-    path('items/', views.BudgetItemListCreateView.as_view(), name='budget-item-list'),
-    path('items/<int:pk>/', views.BudgetItemDetailView.as_view(), name='budget-item-detail'),
+    # Expenses for a board
+    path('boards/<int:board_id>/expenses/', views.ExpenseListCreateView.as_view(), name='board-expenses'),
+    
+    # Expense detail (global, not nested under board)
+    path('expenses/<int:pk>/', views.ExpenseDetailView.as_view(), name='expense-detail'),
+    
+    # Budget summary for a board
+    path('boards/<int:board_id>/budget/summary/', views.BoardBudgetSummaryView.as_view(), name='board-budget-summary'),
 ]
