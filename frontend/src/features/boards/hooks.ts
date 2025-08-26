@@ -65,6 +65,27 @@ export interface Card {
   updated_at: string;
 }
 
+export interface Expense {
+  id: number;
+  board: number;
+  title: string;
+  amount: string;
+  category: string;
+  date: string | null;
+  notes: string | null;
+  created_by: User;
+  created_at: string;
+  updated_at: string;
+  currency: string;
+}
+
+export interface BudgetSummary {
+  board_budget: string;
+  actual_spend_total: string;
+  remaining: string;
+  by_category: { category: string; total: string }[];
+}
+
 // Fetch all boards
 export const useGetBoards = () => {
   return useQuery<Board[]>({
@@ -286,6 +307,103 @@ export const useMoveCard = () => {
     },
     onSuccess: (_, { boardId }) => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });
+    },
+  });
+};
+
+// Fetch board budget summary
+export const useBoardBudgetSummary = (boardId: string | number) => {
+  return useQuery<BudgetSummary>({
+    queryKey: ['board', boardId, 'budget-summary'],
+    queryFn: async () => {
+      const token = tokenManager.getAccessToken();
+      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/budget/summary/`, {
+        headers: getHeaders(token),
+      });
+      if (!response.ok) throw new Error('Failed to fetch budget summary');
+      return response.json();
+    },
+  });
+};
+
+// Fetch expenses for a board
+export const useExpenses = (boardId: string | number, filters?: { category?: string; date_from?: string; date_to?: string }) => {
+  const queryParams = new URLSearchParams();
+  if (filters?.category) queryParams.append('category', filters.category);
+  if (filters?.date_from) queryParams.append('date_from', filters.date_from);
+  if (filters?.date_to) queryParams.append('date_to', filters.date_to);
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+
+  return useQuery<Expense[]>({
+    queryKey: ['board', boardId, 'expenses', filters || {}],
+    queryFn: async () => {
+      const token = tokenManager.getAccessToken();
+      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/expenses/${queryString}`, {
+        headers: getHeaders(token),
+      });
+      if (!response.ok) throw new Error('Failed to fetch expenses');
+      return response.json();
+    },
+  });
+};
+
+// Create expense
+export const useCreateExpense = (boardId: string | number) => {
+  const queryClient = useQueryClient();
+  return useMutation<Expense, Error, Partial<Expense>>({
+    mutationFn: async (data) => {
+      const token = tokenManager.getAccessToken();
+      const response = await fetch(`${API_BASE_URL}/boards/${boardId}/expenses/`, {
+        method: 'POST',
+        headers: getHeaders(token),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create expense');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['board', boardId, 'expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['board', boardId, 'budget-summary'] });
+    },
+  });
+};
+
+// Update expense
+export const useUpdateExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation<Expense, Error, { expenseId: number; data: Partial<Expense>; boardId: number }>({
+    mutationFn: async ({ expenseId, data }) => {
+      const token = tokenManager.getAccessToken();
+      const response = await fetch(`${API_BASE_URL}/expenses/${expenseId}/`, {
+        method: 'PATCH',
+        headers: getHeaders(token),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update expense');
+      return response.json();
+    },
+    onSuccess: (_, { boardId }) => {
+      queryClient.invalidateQueries({ queryKey: ['board', boardId, 'expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['board', boardId, 'budget-summary'] });
+    },
+  });
+};
+
+// Delete expense
+export const useDeleteExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, { expenseId: number; boardId: number }>({
+    mutationFn: async ({ expenseId }) => {
+      const token = tokenManager.getAccessToken();
+      const response = await fetch(`${API_BASE_URL}/expenses/${expenseId}/`, {
+        method: 'DELETE',
+        headers: getHeaders(token),
+      });
+      if (!response.ok) throw new Error('Failed to delete expense');
+    },
+    onSuccess: (_, { boardId }) => {
+      queryClient.invalidateQueries({ queryKey: ['board', boardId, 'expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['board', boardId, 'budget-summary'] });
     },
   });
 };
