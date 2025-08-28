@@ -21,13 +21,9 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         user = serializer.save()
-
         refresh = RefreshToken.for_user(user)
-
         user_serializer = UserSerializer(user)
-
         return Response({
             'message': 'User registered successfully',
             'user': user_serializer.data,
@@ -44,13 +40,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         user = serializer.validated_data['user']
-
         refresh = RefreshToken.for_user(user)
-
         user_serializer = UserSerializer(user)
-
         return Response({
             'message': 'Login successful',
             'user': user_serializer.data,
@@ -77,12 +69,13 @@ class MeView(APIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-
         return Response({
             'message': 'Profile updated successfully',
             'user': serializer.data
         }, status=status.HTTP_200_OK)
 
+# FIXED: Added csrf_exempt decorator to LogoutView
+@method_decorator(csrf_exempt, name='dispatch')
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -125,6 +118,8 @@ def health_check(request):
         'status': 'healthy'
     }, status=status.HTTP_200_OK)
 
+# FIXED: Added csrf_exempt decorator to InviteView
+@method_decorator(csrf_exempt, name='dispatch')
 class InviteView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -142,7 +137,6 @@ class InviteView(APIView):
             message = 'You have been invited to join a team on TripBoard. Log in to view your boards.'
 
         send_mail(subject, message, from_email, recipient_list)
-
         return Response({'message': 'Invitation sent successfully'}, status=status.HTTP_200_OK)
 
 class NotificationListView(generics.ListAPIView):
