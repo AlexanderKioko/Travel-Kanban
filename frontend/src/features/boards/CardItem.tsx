@@ -1,6 +1,6 @@
-import { Draggable, DraggableProvided } from '@hello-pangea/dnd';
+import { Draggable } from '@hello-pangea/dnd';
 import { CreditCard, Clock, MapPin, Tag } from 'lucide-react';
-import { Card, User } from './hooks';
+import { Card } from './hooks';
 
 interface CardItemProps {
   card: Card;
@@ -19,8 +19,7 @@ export default function CardItem({ card, index, boardId, listId }: CardItemProps
       'bg-pink-100 text-pink-800',
       'bg-indigo-100 text-indigo-800',
     ];
-    const colorIndex = tag.length % colors.length;
-    return colors[colorIndex];
+    return colors[tag.length % colors.length];
   };
 
   const formatCurrency = (amount: string, currency: string = 'USD') => {
@@ -33,10 +32,7 @@ export default function CardItem({ card, index, boardId, listId }: CardItemProps
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
+    return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const isOverdue = (dueDate: string | null) => {
@@ -50,7 +46,7 @@ export default function CardItem({ card, index, boardId, listId }: CardItemProps
 
   return (
     <Draggable draggableId={card.id.toString()} index={index}>
-      {(provided: DraggableProvided) => (
+      {(provided) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
@@ -61,7 +57,7 @@ export default function CardItem({ card, index, boardId, listId }: CardItemProps
           {card.description && (
             <p className="text-gray-600 text-xs mb-3 line-clamp-2">{card.description}</p>
           )}
-          {card.tags.length > 0 && (
+          {card.tags.length > 0 ? (
             <div className="flex flex-wrap gap-1 mb-3">
               {card.tags.slice(0, 2).map((tag: string) => (
                 <span key={tag} className={`text-xs px-2 py-1 rounded-full ${getTagColor(tag)}`}>
@@ -74,6 +70,8 @@ export default function CardItem({ card, index, boardId, listId }: CardItemProps
                 </span>
               )}
             </div>
+          ) : (
+            <p className="text-gray-500 text-xs mb-3">No tags added.</p>
           )}
           {card.subtasks.length > 0 && (
             <div className="mb-3">
@@ -96,7 +94,7 @@ export default function CardItem({ card, index, boardId, listId }: CardItemProps
               {parseFloat(card.budget) > 0 && (
                 <div className="flex items-center gap-1 text-gray-600">
                   <CreditCard className="h-3 w-3" />
-                  <span>{formatCurrency((parseFloat(card.budget) * card.people_number).toString())}</span> {/* Currency assumed USD */}
+                  <span>{formatCurrency(card.budget)}</span>  // Raw budget
                 </div>
               )}
               {card.due_date && (
@@ -111,16 +109,10 @@ export default function CardItem({ card, index, boardId, listId }: CardItemProps
                   <span>{card.location.name}</span>
                 </div>
               )}
-              {card.attachments.length > 0 && (
-                <div className="flex items-center gap-1 text-gray-600">
-                  <Tag className="h-3 w-3" />
-                  <span>{card.attachments.length}</span>
-                </div>
-              )}
             </div>
             {card.assigned_members.length > 0 && (
               <div className="flex -space-x-1">
-                {card.assigned_members.slice(0, 2).map((member: User) => (
+                {card.assigned_members.slice(0, 2).map((member) => (
                   <div
                     key={member.id}
                     className="w-5 h-5 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-xs font-medium border border-white"
