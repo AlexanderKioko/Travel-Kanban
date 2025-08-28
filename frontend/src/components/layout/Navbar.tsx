@@ -29,15 +29,47 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { makeApiCall, getHeaders } from '@/features/boards/hooks';
 
-// Mock fetch for notifications (replace with real API, e.g., fetch('/api/notifications'))
-const fetchNotifications = async () => {
-  // Simulate API response
-  return [
-    { id: 1, title: "New board created", time: "2 hours ago" },
-    { id: 2, title: "Task assigned to you", time: "1 day ago" },
-    { id: 3, title: "Budget updated", time: "3 days ago" },
-  ];
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+
+// Type for Notification
+interface Notification {
+  id: number;
+  title: string;
+  message?: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+// Format time ago
+const formatTimeAgo = (dateString: string): string => {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now.getTime() - date.getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days !== 1 ? 's' : ''} ago`;
+};
+
+// Real fetch for notifications with 404 handling
+const fetchNotifications = async (): Promise<Notification[]> => {
+  try {
+    return await makeApiCall(() =>
+      fetch(`${API_BASE_URL}/api/notifications/`, {
+        headers: getHeaders(null),
+      })
+    );
+  } catch (error: any) {
+    if (error.status === 404) {
+      console.warn('Notifications endpoint not available');
+      return [];
+    }
+    throw error;
+  }
 };
 
 interface NavbarProps {
@@ -50,11 +82,19 @@ const Navbar = memo(function Navbar({ user }: NavbarProps) {
   const { logout, loading } = useAuth();
   const router = useRouter();
 
-  const { data: notifications = [] } = useQuery({
+  const { data: notifications = [], isLoading: notificationsLoading, isError } = useQuery({
     queryKey: ["notifications"],
     queryFn: fetchNotifications,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
+    retry: (failureCount, error: any) => {
+      if (error?.status === 404) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const handleLogout = useCallback(async () => {
     try {
@@ -144,9 +184,9 @@ const Navbar = memo(function Navbar({ user }: NavbarProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9 relative">
                 <Bell className="h-4 w-4" />
-                {notifications.length > 0 && (
+                {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {notifications.length}
+                    {unreadCount}
                   </span>
                 )}
               </Button>
@@ -154,11 +194,19 @@ const Navbar = memo(function Navbar({ user }: NavbarProps) {
             <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel className="font-normal">Notifications</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {notifications.length > 0 ? (
+              {isError ? (
+                <DropdownMenuItem className="text-center text-sm text-muted-foreground py-2">
+                  Notifications unavailable
+                </DropdownMenuItem>
+              ) : notificationsLoading ? (
+                <DropdownMenuItem className="text-center text-sm text-muted-foreground py-2">
+                  Loading notifications...
+                </DropdownMenuItem>
+              ) : notifications.length > 0 ? (
                 notifications.map((notif) => (
                   <DropdownMenuItem key={notif.id} className="flex flex-col items-start py-2">
                     <p className="font-medium">{notif.title}</p>
-                    <p className="text-xs text-muted-foreground">{notif.time}</p>
+                    <p className="text-xs text-muted-foreground">{formatTimeAgo(notif.created_at)}</p>
                   </DropdownMenuItem>
                 ))
               ) : (
@@ -189,7 +237,7 @@ const Navbar = memo(function Navbar({ user }: NavbarProps) {
                   </span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56"> {/* Removed forceMount */}
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
