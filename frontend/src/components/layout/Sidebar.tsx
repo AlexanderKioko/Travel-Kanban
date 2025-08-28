@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -30,7 +29,7 @@ const navigation = [
   },
   {
     name: "My Boards",
-    href: "/boards", 
+    href: "/boards",
     icon: Kanban,
   },
   {
@@ -53,25 +52,19 @@ const navigation = [
 export function Sidebar({ isCollapsed }: SidebarProps) {
   const pathname = usePathname();
 
-  // Improved active state logic
   const isActive = (href: string) => {
     if (href === "/dashboard") {
-      // Dashboard should only be active on exact match
       return pathname === "/dashboard";
     }
     if (href === "/boards") {
-      // Boards should be active for /boards and /boards/[boardId]
       return pathname === "/boards" || pathname.startsWith("/boards/");
     }
-    // For other routes, use startsWith
     return pathname.startsWith(href);
   };
 
   return (
     <div className="flex h-full flex-col">
-      {/* Navigation */}
       <nav className="flex-1 space-y-1 p-2">
-        {/* Create New Board Button */}
         <div className="mb-4">
           {isCollapsed ? (
             <Tooltip>
@@ -101,12 +94,10 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
             </Button>
           )}
         </div>
-
-        {/* Navigation Links */}
         <div className="space-y-1">
           {navigation.map((item) => {
             const active = isActive(item.href);
-            
+
             if (isCollapsed) {
               return (
                 <Tooltip key={item.name}>
@@ -126,7 +117,6 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
                 </Tooltip>
               );
             }
-
             return (
               <Button
                 key={item.name}
@@ -146,23 +136,6 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
           })}
         </div>
       </nav>
-
-      {/* Bottom section */}
-      {!isCollapsed && (
-        <div className="border-t p-4">
-          <div className="rounded-lg bg-muted/50 p-3">
-            <h4 className="text-sm font-medium mb-1">Need Help?</h4>
-            <p className="text-xs text-muted-foreground mb-2">
-              Check out our guide to get started with your first trip board.
-            </p>
-            <Button asChild variant="outline" size="sm" className="w-full">
-              <Link href="/dashboard/guide">
-                View Guide
-              </Link>
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
