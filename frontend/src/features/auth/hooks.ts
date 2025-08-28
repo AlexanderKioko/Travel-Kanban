@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
-import { useSession } from '@/store/useSession'; 
+import { useMutation } from '@tanstack/react-query';
+import { useSession } from '@/store/useSession';
+import { makeApiCall, getHeaders } from '@/features/boards/hooks';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
@@ -89,7 +91,6 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
     const token = tokenManager.getAccessToken();
 
-    // Always use Record<string, string> for headers
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string> || {}),
@@ -107,11 +108,9 @@ class ApiClient {
     try {
       let response = await fetch(url, config);
 
-      // Handle 401 Unauthorized (token expired)
       if (response.status === 401 && token) {
         const refreshed = await this.refreshToken();
         if (refreshed) {
-          // Retry the original request with the new token
           headers.Authorization = `Bearer ${tokenManager.getAccessToken()}`;
           response = await fetch(url, { ...config, headers });
         } else {
@@ -138,7 +137,6 @@ class ApiClient {
     }
   }
 
-  // --- Authentication Methods ---
   async register(data: RegisterData): Promise<AuthResponse> {
     return this.request<AuthResponse>('/api/auth/register/', {
       method: 'POST',
@@ -200,7 +198,6 @@ class ApiClient {
     return false;
   }
 
-  // --- Health Check ---
   async healthCheck(): Promise<{ status: string }> {
     return this.request<{ status: string }>('/api/health/');
   }
@@ -221,19 +218,17 @@ export const auth = {
 
 // --- React Hooks ---
 export const useLogout = () => {
-  const { clearUser } = useSession(); // Use clearUser from your session store
+  const { clearUser } = useSession();
 
   const logout = useCallback(async () => {
     try {
       await auth.logout();
-      clearUser(); // Clear the session state
-      // Optionally redirect to login page
+      clearUser();
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
       }
     } catch (error) {
       console.error('Logout failed:', error);
-      // Even if logout fails on server, clear local tokens and session
       tokenManager.clearTokens();
       clearUser();
       if (typeof window !== 'undefined') {
@@ -243,4 +238,31 @@ export const useLogout = () => {
   }, [clearUser]);
 
   return { logout };
+};
+
+export const useDeleteUser = () => {
+  const { clearUser } = useSession();
+  return useMutation<void, Error>({
+    mutationFn: async () => {
+      const token = tokenManager.getAccessToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+      return makeApiCall(() =>
+        fetch(`${API_BASE_URL}/api/auth/me/delete/`, {
+          method: 'DELETE',
+          headers: getHeaders(token),
+        })
+      );
+    },
+    onSuccess: () => {
+      clearUser();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    },
+    onError: (error) => {
+      console.error('Failed to delete user:', error);
+    },
+  });
 };
