@@ -8,8 +8,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.core.mail import send_mail
 from .models import User, Notification
-from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, NotificationSerializer, CustomTokenRefreshSerializer  # FIXED: Import the custom serializer (though used in urls)
+from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, NotificationSerializer, CustomTokenRefreshSerializer
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [AllowAny]
@@ -34,6 +37,7 @@ class RegisterView(generics.CreateAPIView):
             }
         }, status=status.HTTP_201_CREATED)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = LoginSerializer
 
