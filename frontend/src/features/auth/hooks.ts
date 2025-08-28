@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useSession } from '@/store/useSession';
 import { makeApiCall, getHeaders } from '@/features/boards/hooks';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://travel-kanban.onrender.com';
 
 // --- Types ---
 export interface User {
