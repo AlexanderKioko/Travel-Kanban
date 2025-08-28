@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,12 +16,41 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { LayoutDashboard, CreditCard, Users, Star, Menu, X, Plane, ArrowRight, Play } from "lucide-react";
+import { LayoutDashboard, CreditCard, Users, Star, Menu, X, Plane, ArrowRight } from "lucide-react";
+
+// Custom hook for intersection observer
+function useIsVisible(ref: React.RefObject<HTMLElement | null>) {
+  const [isIntersecting, setIntersecting] = useState(false);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      setIntersecting(entry.isIntersecting);
+    }, { threshold: 0.1 });
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, [ref]);
+  return isIntersecting;
+}
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const router = useRouter();
+
+  // Refs for sections
+  const featuresRef = useRef<HTMLElement | null>(null);
+  const howItWorksRef = useRef<HTMLElement | null>(null);
+  const reviewsRef = useRef<HTMLElement | null>(null);
+
+  // Visibility states
+  const featuresVisible = useIsVisible(featuresRef);
+  const howItWorksVisible = useIsVisible(howItWorksRef);
+  const reviewsVisible = useIsVisible(reviewsRef);
 
   useEffect(() => {
     setIsVisible(true);
@@ -32,7 +60,6 @@ export default function LandingPage() {
   const handleLoginNavigation = () => {
     router.push('/login');
   };
-
   const handleRegisterNavigation = () => {
     router.push('/register');
   };
@@ -52,24 +79,25 @@ export default function LandingPage() {
                 TripBoard
               </span>
             </div>
-
             {/* Desktop Navigation */}
             <nav className="hidden md:block">
               <ul className="flex items-center space-x-8">
-                {['Features', 'How it Works', 'Reviews', 'Pricing'].map((item) => (
-                  <li key={item}>
-                    <a
-                      href={`#${item.toLowerCase().replace(' ', '-')}`}
-                      className="text-slate-600 hover:text-blue-600 transition-all duration-200 font-medium relative group"
-                    >
-                      {item}
-                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
-                    </a>
-                  </li>
-                ))}
+                {['Features', 'Reviews'].map((item) => {
+                  const id = `#${item.toLowerCase().replace(' ', '-')}`;
+                  return (
+                    <li key={item}>
+                      <a
+                        href={id}
+                        className="text-slate-600 hover:text-blue-600 transition-all duration-200 font-medium relative group"
+                      >
+                        {item}
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </nav>
-
             {/* Desktop Action Buttons */}
             <div className="hidden md:flex items-center space-x-4">
               <Button
@@ -87,7 +115,6 @@ export default function LandingPage() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
-
             {/* Mobile Menu Button */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -100,16 +127,18 @@ export default function LandingPage() {
                   <SheetTitle className="text-left">Navigation</SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col space-y-4 mt-8">
-                  {['Features', 'How it Works', 'Reviews', 'Pricing'].map((item) => (
-                    <a
-                      key={item}
-                      href={`#${item.toLowerCase().replace(' ', '-')}`}
-                      className="text-slate-600 hover:text-blue-600 transition-colors duration-200 px-2 py-2 font-medium"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {item}
-                    </a>
-                  ))}
+                  {['Features', 'Reviews'].map((item) => {
+                    const id = `#${item.toLowerCase().replace(' ', '-')}`;
+                    return (
+                      <a
+                        key={item}
+                        href={id}
+                        className="text-slate-600 hover:text-blue-600 transition-colors duration-200 px-2 py-2 font-medium"
+                      >
+                        {item}
+                      </a>
+                    );
+                  })}
                   <div className="flex flex-col space-y-3 pt-6 border-t border-slate-200">
                     <Button variant="ghost" onClick={() => { setMobileMenuOpen(false); handleLoginNavigation(); }} className="cursor-pointer">
                       Sign In
@@ -131,12 +160,12 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30"></div>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <div className={`text-center lg:text-left transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+              <div className={`text-center lg:text-left transform transition-all duration-1000 ease-out ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                 <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium mb-8 border border-blue-200">
                   <Star className="h-4 w-4 mr-2 fill-current" />
                   Trusted by 10,000+ travelers
                 </div>
-                
+
                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
                   <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 bg-clip-text text-transparent">
                     Plan Your Perfect
@@ -146,11 +175,10 @@ export default function LandingPage() {
                     Adventure
                   </span>
                 </h1>
-                
+
                 <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl">
                   Organize destinations, track budgets, and collaborate with travel companions using our beautiful kanban-style planning boards.
                 </p>
-
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
                   <Button
                     size="lg"
@@ -160,24 +188,18 @@ export default function LandingPage() {
                     Start Planning Free
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="px-8 py-4 text-lg font-semibold border-2 hover:bg-slate-50 hover:text-slate-800 transition-all duration-200 cursor-pointer"
-                  >
-                    <Play className="mr-2 h-5 w-5" />
-                    Watch Demo
-                  </Button>
                 </div>
-
-                {/* Metrics */}
+                {/* Metrics with staggered animation */}
                 <div className="flex flex-col sm:flex-row gap-8 justify-center lg:justify-start">
                   {[
-                    { number: '10k+', label: 'Happy Travelers' },
-                    { number: '50k+', label: 'Trips Planned' },
-                    { number: '4.9', label: 'User Rating', icon: Star }
+                    { number: '10k+', label: 'Happy Travelers', delay: '' },
+                    { number: '50k+', label: 'Trips Planned', delay: 'delay-200' },
+                    { number: '4.9', label: 'User Rating', icon: Star, delay: 'delay-300' }
                   ].map((metric, index) => (
-                    <div key={index} className="flex items-center gap-3">
+                    <div
+                      key={index}
+                      className={`flex items-center gap-3 transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'} ${metric.delay}`}
+                    >
                       <span className="text-2xl font-bold text-slate-800">{metric.number}</span>
                       {metric.icon && <metric.icon className="h-5 w-5 fill-yellow-400 text-yellow-400" />}
                       <span className="text-slate-600">{metric.label}</span>
@@ -185,14 +207,13 @@ export default function LandingPage() {
                   ))}
                 </div>
               </div>
-
               {/* Kanban Board Visual */}
-              <div className={`flex justify-center lg:justify-end transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+              <div className={`flex justify-center lg:justify-end transform transition-all duration-1000 delay-300 ease-out ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                 <div className="relative group">
                   {/* Floating elements */}
                   <div className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full opacity-20 animate-pulse"></div>
                   <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 animate-pulse delay-1000"></div>
-                  
+
                   {/* Main board */}
                   <div className="bg-white rounded-2xl p-8 shadow-2xl border border-slate-200/50 transform group-hover:scale-105 transition-all duration-500">
                     <div className="mb-4">
@@ -203,7 +224,7 @@ export default function LandingPage() {
                       </div>
                       <div className="text-sm font-medium text-slate-800">Europe Trip 2025</div>
                     </div>
-                    
+
                     <div className="grid grid-cols-3 gap-4 min-h-[340px] w-[420px]">
                       {/* Planning Column */}
                       <div className="bg-gradient-to-b from-slate-50 to-slate-100/50 rounded-xl p-4">
@@ -222,7 +243,6 @@ export default function LandingPage() {
                           </div>
                         </div>
                       </div>
-
                       {/* In Progress Column */}
                       <div className="bg-gradient-to-b from-slate-50 to-slate-100/50 rounded-xl p-4">
                         <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
@@ -236,7 +256,6 @@ export default function LandingPage() {
                           </div>
                         </div>
                       </div>
-
                       {/* Completed Column */}
                       <div className="bg-gradient-to-b from-slate-50 to-slate-100/50 rounded-xl p-4">
                         <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
@@ -261,8 +280,67 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* How it Works Section */}
+        <section
+          ref={howItWorksRef}
+          id="how-it-works"
+          className="py-20 lg:py-32 bg-gradient-to-b from-slate-50 to-white"
+        >
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-20">
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
+                <span className="bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                  How TripBoard Works
+                </span>
+              </h2>
+              <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+                Plan your trips in 3 easy steps. No complexity, just results.
+              </p>
+            </div>
+            <div className="grid lg:grid-cols-3 gap-12">
+              {[
+                {
+                  number: '01',
+                  title: 'Create Your Board',
+                  description: 'Start with a template or create a custom board tailored to your trip. Add destinations, budgets, and travel companions.',
+                  icon: LayoutDashboard,
+                  gradient: 'from-blue-600 to-indigo-600'
+                },
+                {
+                  number: '02',
+                  title: 'Add Your Tasks',
+                  description: 'Break down your trip into manageable tasks. Assign budgets, deadlines, and collaborators for each activity.',
+                  icon: CreditCard,
+                  gradient: 'from-green-600 to-emerald-600'
+                },
+                {
+                  number: '03',
+                  title: 'Track Progress',
+                  description: 'Move tasks through your workflow as you complete them. Watch your trip come together in real-time.',
+                  icon: Users,
+                  gradient: 'from-purple-600 to-pink-600'
+                }
+              ].map((step, index) => (
+                <div key={index} className="text-center group">
+                  <div className={`w-20 h-20 mx-auto mb-8 bg-gradient-to-r ${step.gradient} rounded-2xl flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                    <step.icon className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-800 mb-4">{step.title}</h3>
+                  <p className="text-slate-600 leading-relaxed max-w-sm mx-auto">
+                    {step.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Features Section */}
-        <section id="features" className="py-20 lg:py-32 bg-white">
+        <section
+          ref={featuresRef}
+          id="features"
+          className={`py-20 lg:py-32 bg-white transition-all duration-700 ease-in-out ${featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+        >
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-20">
               <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium mb-6">
@@ -274,7 +352,6 @@ export default function LandingPage() {
                 </span>
               </h2>
             </div>
-
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
                 {
@@ -314,57 +391,12 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* How it Works Section */}
-        <section id="how-it-works" className="py-20 lg:py-32 bg-gradient-to-b from-slate-50 to-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-20">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 text-sm font-medium mb-6">
-                Simple process, powerful results
-              </div>
-              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
-                <span className="bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                  How TripBoard Works
-                </span>
-              </h2>
-            </div>
-
-            <div className="grid lg:grid-cols-3 gap-12">
-              {[
-                {
-                  number: '01',
-                  title: 'Create Your Board',
-                  description: 'Start with a template or create a custom board tailored to your trip.',
-                  gradient: 'from-blue-600 to-indigo-600'
-                },
-                {
-                  number: '02',
-                  title: 'Add Your Tasks',
-                  description: 'Break down your trip into manageable tasks with budgets and deadlines.',
-                  gradient: 'from-green-600 to-emerald-600'
-                },
-                {
-                  number: '03',
-                  title: 'Track Progress',
-                  description: 'Move tasks through your workflow as you complete them and watch your trip come together.',
-                  gradient: 'from-purple-600 to-pink-600'
-                }
-              ].map((step, index) => (
-                <div key={index} className="text-center group">
-                  <div className={`w-20 h-20 mx-auto mb-8 bg-gradient-to-r ${step.gradient} rounded-2xl flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                    {step.number}
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-800 mb-4">{step.title}</h3>
-                  <p className="text-slate-600 leading-relaxed max-w-sm mx-auto">
-                    {step.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Reviews Section */}
-        <section id="reviews" className="py-20 lg:py-32 bg-white">
+        <section
+          ref={reviewsRef}
+          id="reviews"
+          className={`py-20 lg:py-32 bg-white transition-all duration-700 ease-in-out ${reviewsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+        >
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-20">
               <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-50 text-green-700 text-sm font-medium mb-6">
@@ -375,7 +407,6 @@ export default function LandingPage() {
                   What Our Users Say
                 </span>
               </h2>
-
               {/* Metric Badges */}
               <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-full font-semibold shadow-lg hover:shadow-xl transition-shadow duration-200">
@@ -386,7 +417,6 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-
             <div className="grid lg:grid-cols-3 gap-8">
               {[
                 {
@@ -454,14 +484,6 @@ export default function LandingPage() {
                 Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-2 border-white text-white hover:bg-white/10 px-10 py-4 text-lg font-semibold backdrop-blur-sm transition-all duration-200"
-              >
-                <Play className="mr-2 h-5 w-5" />
-                Watch Demo
-              </Button>
             </div>
           </div>
         </section>
@@ -470,7 +492,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="bg-slate-900 text-white py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             {/* Logo and Copyright */}
             <div className="space-y-6">
               <div className="flex items-center space-x-3">
@@ -486,28 +508,11 @@ export default function LandingPage() {
                 © 2025 TripBoard. All rights reserved.
               </p>
             </div>
-
-            {/* Product Links */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-white text-lg">Product</h3>
-              <div className="space-y-3">
-                {['Features', 'Pricing', 'Templates', 'Mobile App'].map((item) => (
-                  <a
-                    key={item}
-                    href={`#${item.toLowerCase().replace(' ', '-')}`}
-                    className="block text-slate-400 hover:text-white transition-colors duration-200"
-                  >
-                    {item}
-                  </a>
-                ))}
-              </div>
-            </div>
-
             {/* Company Links */}
             <div className="space-y-4">
               <h3 className="font-semibold text-white text-lg">Company</h3>
               <div className="space-y-3">
-                {['About Us', 'Careers', 'Contact', 'Blog'].map((item) => (
+                {['About Us', 'Contact'].map((item) => (
                   <a
                     key={item}
                     href={`/${item.toLowerCase().replace(' ', '-')}`}
@@ -518,12 +523,11 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-
             {/* Support Links */}
             <div className="space-y-4">
               <h3 className="font-semibold text-white text-lg">Support</h3>
               <div className="space-y-3">
-                {['Help Center', 'Privacy Policy', 'Terms of Service', 'Status'].map((item) => (
+                {['Help Center', 'Privacy Policy', 'Terms of Service'].map((item) => (
                   <a
                     key={item}
                     href={`/${item.toLowerCase().replace(' ', '-')}`}

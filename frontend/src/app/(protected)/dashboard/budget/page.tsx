@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useGetBoards, useExpenses } from "@/features/boards/hooks";
 import BudgetSummary from "@/components/budget/BudgetSummary";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,8 +17,7 @@ export default function BudgetPage() {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAllExpenses, setShowAllExpenses] = useState(false);
 
-  // Set default board to first board if none selected
-  useMemo(() => {
+  useEffect(() => {
     if (boards.length > 0 && selectedBoardId === null) {
       setSelectedBoardId(boards[0].id);
     }
