@@ -1,3 +1,8 @@
 from django.contrib import admin
+from .models import Location
 
-# Register your models here.
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'board', 'lat', 'lng', 'created_by', 'created_at')
+    list_filter = ('board', 'created_by')
+    search_fields = ('name',)

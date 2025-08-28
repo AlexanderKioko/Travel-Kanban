@@ -1,21 +1,19 @@
 from django.db import models
-from boards.models import Card   # FIXED: import from boards instead of cards
+from boards.models import Board
+from users.models import User
 
-class MapLocation(models.Model):
-    card = models.OneToOneField(Card, on_delete=models.CASCADE, related_name='map_location')
-    name = models.CharField(max_length=200)  # e.g., "Eiffel Tower", "Hotel de Paris"
-    description = models.TextField(blank=True, null=True)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)  # Standard for GPS
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    address = models.TextField(blank=True, null=True)  # Optional full address string
+class Location(models.Model):
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='locations')
+    name = models.CharField(max_length=200)
+    lat = models.FloatField()
+    lng = models.FloatField()
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_locations')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.name} ({self.card.title})"
+        return f"{self.name} ({self.board.title})"
 
     class Meta:
-        db_table = 'map_locations'
-        verbose_name = 'Map Location'
-        verbose_name_plural = 'Map Locations'
+        db_table = 'locations'
         ordering = ['-created_at']

@@ -1,3 +1,4 @@
+# boards/views.py
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response

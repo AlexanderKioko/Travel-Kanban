@@ -6,16 +6,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from .models import User
-from .serializers import UserSerializer, RegisterSerializer, LoginSerializer
-
+from django.core.mail import send_mail
+from .models import User, Notification
+from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, NotificationSerializer, CustomTokenRefreshSerializer  # FIXED: Import the custom serializer (though used in urls)
 
 class RegisterView(generics.CreateAPIView):
-    """
-    User registration endpoint.
-    POST /api/auth/register/
-    Creates a new user account and returns user data with JWT tokens.
-    """
     queryset = User.objects.all()
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
@@ -23,16 +18,13 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
-        # Create the user
+
         user = serializer.save()
-        
-        # Generate JWT tokens for the new user
+
         refresh = RefreshToken.for_user(user)
-        
-        # Return user data with tokens
+
         user_serializer = UserSerializer(user)
-        
+
         return Response({
             'message': 'User registered successfully',
             'user': user_serializer.data,
@@ -42,27 +34,19 @@ class RegisterView(generics.CreateAPIView):
             }
         }, status=status.HTTP_201_CREATED)
 
-
 class CustomTokenObtainPairView(TokenObtainPairView):
-    """
-    Custom JWT login endpoint that accepts email instead of username.
-    POST /api/auth/login/
-    """
-    serializer_class = LoginSerializer  # This is the key fix!
+    serializer_class = LoginSerializer
 
     def post(self, request, *args, **kwargs):
-        # Use our custom LoginSerializer for validation
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         user = serializer.validated_data['user']
-        
-        # Generate JWT tokens
+
         refresh = RefreshToken.for_user(user)
-        
-        # Return user data with tokens
+
         user_serializer = UserSerializer(user)
-        
+
         return Response({
             'message': 'Login successful',
             'user': user_serializer.data,
@@ -72,47 +56,33 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             }
         }, status=status.HTTP_200_OK)
 
-
 class MeView(APIView):
-    """
-    Get current user profile.
-    GET /api/auth/me/
-    Requires JWT authentication.
-    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """Return the current user's profile data."""
         serializer = UserSerializer(request.user)
         return Response({
             'user': serializer.data
         }, status=status.HTTP_200_OK)
 
     def put(self, request):
-        """Update the current user's profile data."""
         serializer = UserSerializer(
-            request.user, 
-            data=request.data, 
+            request.user,
+            data=request.data,
             partial=True
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        
+
         return Response({
             'message': 'Profile updated successfully',
             'user': serializer.data
         }, status=status.HTTP_200_OK)
 
-
 class LogoutView(APIView):
-    """
-    Logout endpoint that blacklists the refresh token.
-    POST /api/auth/logout/
-    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        """Blacklist the refresh token to logout the user."""
         try:
             refresh_token = request.data.get("refresh")
             if refresh_token:
@@ -130,12 +100,50 @@ class LogoutView(APIView):
                 'error': 'Invalid token'
             }, status=status.HTTP_400_BAD_REQUEST)
 
+class UserDeleteView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def delete(self, request, *args, **kwargs):
+        user = self.get_object()
+        user.delete()
+        return Response({
+            'message': 'Account deleted successfully'
+        }, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
-    """Health check endpoint for testing."""
     return Response({
         'message': 'Users API is working!',
         'status': 'healthy'
     }, status=status.HTTP_200_OK)
+
+class InviteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        subject = 'Invitation to Join TripBoard'
+        message = 'You have been invited to join TripBoard. Please register or log in to collaborate on travel plans.'
+        from_email = 'noreply@tripboard.com'
+        recipient_list = [email]
+
+        if User.objects.filter(email=email).exists():
+            message = 'You have been invited to join a team on TripBoard. Log in to view your boards.'
+
+        send_mail(subject, message, from_email, recipient_list)
+
+        return Response({'message': 'Invitation sent successfully'}, status=status.HTTP_200_OK)
+
+class NotificationListView(generics.ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user).order_by('-created_at')

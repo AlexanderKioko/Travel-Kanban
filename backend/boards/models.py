@@ -1,7 +1,14 @@
+# boards/models.py
 from django.db import models
 from django.db.models import Max
 from users.models import User
 
+# Add these helper functions at the top of the file
+def get_default_list():
+    return []
+
+def get_default_dict():
+    return {}
 
 class Board(models.Model):
     STATUS_CHOICES = [
@@ -20,8 +27,8 @@ class Board(models.Model):
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     is_favorite = models.BooleanField(default=False)
-    tags = models.JSONField(default=list)
-    cover_image = models.ImageField(upload_to='board_covers/', null=True, blank=True)
+    tags = models.JSONField(default=get_default_list)  # Changed to callable
+    cover_image = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -30,7 +37,6 @@ class Board(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Ensure owner is always a member
         if self.owner not in self.members.all():
             self.members.add(self.owner)
 
@@ -52,7 +58,6 @@ class List(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.position:
-            # Set position to the next available position in the board
             max_position = self.board.lists.aggregate(Max('position'))['position__max']
             self.position = (max_position or -1) + 1
         super().save(*args, **kwargs)
@@ -63,18 +68,28 @@ class List(models.Model):
 
 
 class Card(models.Model):
+    CATEGORY_CHOICES = [
+        ('flight', 'Flight'),
+        ('hotel', 'Hotel'),
+        ('food', 'Food'),
+        ('activity', 'Activity'),
+        ('romantic', 'Romantic'),
+        ('family', 'Family'),
+    ]
+
     list = models.ForeignKey(List, on_delete=models.CASCADE, related_name='cards')
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
     budget = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     people_number = models.PositiveIntegerField(default=1)
-    tags = models.JSONField(default=list)
+    tags = models.JSONField(default=get_default_list)  # Changed to callable
     due_date = models.DateField(null=True, blank=True)
     assigned_members = models.ManyToManyField(User, blank=True, related_name='assigned_cards')
-    subtasks = models.JSONField(default=list)
-    attachments = models.JSONField(default=list)
-    location = models.JSONField(default=dict, null=True, blank=True)
+    subtasks = models.JSONField(default=get_default_list)  # Changed to callable
+    attachments = models.JSONField(default=get_default_list)  # Changed to callable
+    location = models.JSONField(default=get_default_dict, null=True, blank=True)  # Changed to callable
     position = models.PositiveIntegerField(default=0)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -83,7 +98,6 @@ class Card(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.position:
-            # Set position to the next available position in the list
             max_position = self.list.cards.aggregate(Max('position'))['position__max']
             self.position = (max_position or -1) + 1
         super().save(*args, **kwargs)

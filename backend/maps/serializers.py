@@ -1,35 +1,24 @@
 from rest_framework import serializers
-from .models import MapLocation
-from boards.models import Card
-from boards.serializers import CardSerializer
+from .models import Location
+from users.serializers import UserSerializer
 
-
-class MapLocationSerializer(serializers.ModelSerializer):
-    card = CardSerializer(read_only=True)  # Show card details
-    card_id = serializers.PrimaryKeyRelatedField(
-        queryset=Card.objects.all(), source='card', write_only=True
-    )  # For creation/update
+class LocationSerializer(serializers.ModelSerializer):
+    created_by = UserSerializer(read_only=True)
 
     class Meta:
-        model = MapLocation
+        model = Location
         fields = [
-            'id', 'card', 'card_id', 'name', 'description',
-            'latitude', 'longitude', 'address',
-            'created_at', 'updated_at'
+            'id', 'board', 'name', 'lat', 'lng',
+            'created_by', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'board', 'created_by', 'created_at', 'updated_at']
 
-    def validate_card_id(self, value):
-        """
-        Ensure the user has permission to add a location to this card.
-        This check will be reinforced in the view.
-        """
-        request = self.context.get('request')
-        if request and hasattr(request, 'user'):
-            user = request.user
-            # Check if the card's board belongs to the user
-            if value.list.board.owner != user:  # ✅ FIX: use card.list.board.owner
-                raise serializers.ValidationError(
-                    "You do not have permission to add a location to this card."
-                )
+    def validate_lat(self, value):
+        if not -90 <= value <= 90:
+            raise serializers.ValidationError("Latitude must be between -90 and 90.")
+        return value
+
+    def validate_lng(self, value):
+        if not -180 <= value <= 180:
+            raise serializers.ValidationError("Longitude must be between -180 and 180.")
         return value
