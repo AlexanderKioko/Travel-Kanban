@@ -1,1 +1,1 @@
-gunicorn travelkanban.wsgi --log-file -
+./migrate.sh && gunicorn travelkanban.wsgi --log-file -
