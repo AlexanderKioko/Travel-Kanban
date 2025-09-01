@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useSession } from '@/store/useSession';
 import { makeApiCall, getHeaders } from '@/features/boards/hooks';
-import { toast } from 'sonner'; // For onError
+import { toast } from 'sonner';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://travel-kanban.onrender.com';
 
