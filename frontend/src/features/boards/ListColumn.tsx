@@ -5,7 +5,8 @@ import CardItem from './CardItem';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import CardForm from './CardForm';
-import { useUpdateList, useDeleteList, List, Card } from './hooks';
+import { useUpdateList, useDeleteList } from './hooks';
+import { List, Card } from '@/types';
 import { toast } from 'sonner';
 
 interface ListColumnProps {
@@ -15,11 +16,18 @@ interface ListColumnProps {
 
 export default function ListColumn({ list, boardId }: ListColumnProps) {
   const [showAddCard, setShowAddCard] = useState(false);
+  const [showEditCard, setShowEditCard] = useState(false);
+  const [editCardData, setEditCardData] = useState<Card | null>(null);
   const { mutate: updateList } = useUpdateList(boardId);
   const { mutate: deleteList } = useDeleteList(boardId);
 
   const handleAddCard = () => {
     setShowAddCard(true);
+  };
+
+  const handleEditCard = (card: Card) => {
+    setEditCardData(card);
+    setShowEditCard(true);
   };
 
   const handleDeleteList = () => {
@@ -71,9 +79,18 @@ export default function ListColumn({ list, boardId }: ListColumnProps) {
             ref={provided.innerRef}
             className="p-4 space-y-3 min-h-[100px]"
           >
-            {list.cards.sort((a: Card, b: Card) => a.position - b.position).map((card: Card, index: number) => (
-              <CardItem key={card.id} card={card} index={index} boardId={boardId} listId={list.id} />
-            ))}
+            {list.cards
+              .sort((a: Card, b: Card) => a.position - b.position)
+              .map((card: Card, index: number) => (
+                <CardItem
+                  key={card.id}
+                  card={card}
+                  index={index}
+                  boardId={boardId}
+                  listId={list.id}
+                  onEdit={handleEditCard}
+                />
+              ))}
             {provided.placeholder}
           </div>
         )}
@@ -86,12 +103,34 @@ export default function ListColumn({ list, boardId }: ListColumnProps) {
         </Button>
       </div>
 
+      {/* Add Card Modal */}
       <Dialog open={showAddCard} onOpenChange={setShowAddCard}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Card</DialogTitle>
           </DialogHeader>
-          <CardForm boardId={boardId} listId={list.id} onSuccess={() => setShowAddCard(false)} />
+          <CardForm
+            boardId={boardId}
+            listId={list.id}
+            onSuccess={() => setShowAddCard(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Card Modal */}
+      <Dialog open={showEditCard} onOpenChange={setShowEditCard}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Card</DialogTitle>
+          </DialogHeader>
+          {editCardData && (
+            <CardForm
+              boardId={boardId}
+              listId={list.id}
+              onSuccess={() => setShowEditCard(false)}
+              initialData={editCardData}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
