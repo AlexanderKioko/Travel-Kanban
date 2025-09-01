@@ -13,7 +13,29 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
 import Image from 'next/image';
-import { useGetBoards, useCreateBoard, useUpdateBoard, Board, useInviteUser } from '@/features/boards/hooks';
+import { useGetBoards, useCreateBoard, useUpdateBoard, useInviteUser } from '@/features/boards/hooks';
+import { Board } from '@/types';
+import { formatCurrency, formatDate } from '@/lib/utils';
+
+// Normalize Board object to match @/types
+const normalizeBoard = (board: any): Board => ({
+  id: board.id,
+  title: board.title,
+  description: board.description ?? undefined,
+  owner: board.owner,
+  members: board.members,
+  status: board.status,
+  budget: board.budget,
+  currency: board.currency,
+  start_date: board.start_date ?? undefined,
+  end_date: board.end_date ?? undefined,
+  is_favorite: board.is_favorite,
+  tags: board.tags,
+  cover_image: board.cover_image ?? undefined,
+  lists: board.lists,
+  created_at: board.created_at,
+  updated_at: board.updated_at,
+});
 
 // Updated schema with stricter URL validation
 const boardSchema = z.object({
@@ -153,9 +175,12 @@ export default function BoardsPage() {
            'status' in board;
   };
 
+  // Normalize all boards
+  const normalizedBoards = boards.map(normalizeBoard);
+
   // Safely filter and sort boards
-  const filteredBoards = Array.isArray(boards)
-    ? boards
+  const filteredBoards = Array.isArray(normalizedBoards)
+    ? normalizedBoards
         .filter(isValidBoard)
         .filter((board) => {
           const matchesSearch =
@@ -201,30 +226,6 @@ export default function BoardsPage() {
     }
   };
 
-  const formatCurrency = (amount: string, currency: string = 'USD') => {
-    const num = parseFloat(amount || '0');
-    return isNaN(num)
-      ? '$0.00'
-      : new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency,
-          minimumFractionDigits: 2,
-        }).format(num);
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    } catch {
-      return 'Invalid Date';
-    }
-  };
-
   const toggleFavorite = (boardId: number, current: boolean) => {
     updateBoard(
       { boardId, data: { is_favorite: !current } },
@@ -238,7 +239,6 @@ export default function BoardsPage() {
     if (!board.lists || !Array.isArray(board.lists) || board.lists.length === 0) {
       return 0;
     }
-
     const total = board.lists.reduce(
       (sum: number, list: any) => {
         if (!list || !list.cards || !Array.isArray(list.cards)) return sum;
@@ -246,9 +246,7 @@ export default function BoardsPage() {
       },
       0
     );
-
     if (total === 0) return 0;
-
     const completed = board.lists
       .filter((list: any) => list?.title?.toLowerCase().includes('completed'))
       .reduce(
@@ -258,7 +256,6 @@ export default function BoardsPage() {
         },
         0
       );
-
     return Math.round((completed / total) * 100);
   };
 
@@ -266,7 +263,6 @@ export default function BoardsPage() {
     if (!board.lists || !Array.isArray(board.lists) || board.lists.length === 0) {
       return { planning: 0, booked: 0, completed: 0 };
     }
-
     return board.lists.reduce(
       (acc: any, list: any) => {
         if (!list || !list.title || !list.cards || !Array.isArray(list.cards)) return acc;
@@ -285,7 +281,7 @@ export default function BoardsPage() {
   };
 
   // Validate image URL
-  const isValidCoverImage = (url: string | null) => {
+  const isValidCoverImage = (url: string | undefined) => {
     if (!url || !url.startsWith('http')) return false;
     return /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
   };
@@ -340,7 +336,6 @@ export default function BoardsPage() {
           </Button>
         </div>
       </div>
-
       {/* Search & Filters */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex flex-col lg:flex-row lg:items-center gap-4">
@@ -379,7 +374,6 @@ export default function BoardsPage() {
           </div>
         </div>
       </div>
-
       {/* Summary */}
       <div className="flex items-center justify-between text-sm text-gray-600">
         <span>Showing {filteredBoards.length} of {Array.isArray(boards) ? boards.length : 0} boards</span>
@@ -395,7 +389,6 @@ export default function BoardsPage() {
           </button>
         )}
       </div>
-
       {/* Boards Grid */}
       {filteredBoards.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -489,7 +482,7 @@ export default function BoardsPage() {
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
                       <Calendar className="h-4 w-4" />
-                      <span>{formatDate(board.start_date)}</span>
+                      <span>{formatDate(board.start_date || null)}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
                       <MapPin className="h-4 w-4" />
@@ -500,7 +493,6 @@ export default function BoardsPage() {
               </div>
             </Link>
           ))}
-
           {/* Create New Board Card */}
           <div
             onClick={() => router.push('/boards?create=true')}
@@ -530,7 +522,6 @@ export default function BoardsPage() {
           </Button>
         </div>
       )}
-
       {/* Create Board Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={closeModal}>
         <DialogContent className="sm:max-w-md">
@@ -657,7 +648,6 @@ export default function BoardsPage() {
           </form>
         </DialogContent>
       </Dialog>
-
       {/* Invite Team Members Modal */}
       <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
         <DialogContent>

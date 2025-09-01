@@ -1,14 +1,78 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, Calendar, CreditCard, CheckSquare, Users, TrendingUp, MapPin } from 'lucide-react';
-import { useSession } from '@/store/useSession';
-import { useGetBoards, Board, useInviteUser } from '@/features/boards/hooks';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Plus, Calendar, CreditCard, Users, MapPin, Star, Loader2, CheckSquare, TrendingUp, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react'; // FIXED: Added search bar
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
+import Image from 'next/image';
+import { useGetBoards, useInviteUser } from '@/features/boards/hooks';
+import { Board, List, Card } from '@/types';
+import { formatCurrency, formatDate } from '@/lib/utils';
+import RecentBoards from './RecentBoards';
+import UpcomingTasks from './UpcomingTasks';
+import QuickActions from './QuickActions';
+import { useSession } from '@/store/useSession';
+
+// Normalize Board object to match @/types
+const normalizeBoard = (board: any): Board => ({
+  id: board.id,
+  title: board.title,
+  description: board.description ?? undefined,
+  owner: board.owner,
+  members: board.members,
+  status: board.status,
+  budget: board.budget,
+  currency: board.currency,
+  start_date: board.start_date ?? undefined,
+  end_date: board.end_date ?? undefined,
+  is_favorite: board.is_favorite,
+  tags: board.tags,
+  cover_image: board.cover_image ?? undefined,
+  lists: board.lists?.map(normalizeList) || [],
+  created_at: board.created_at,
+  updated_at: board.updated_at,
+});
+
+// Normalize List object to match @/types
+const normalizeList = (list: any): List => ({
+  id: list.id,
+  board: list.board,
+  title: list.title,
+  color: list.color,
+  position: list.position,
+  cards: list.cards?.map(normalizeCard) || [],
+  created_at: list.created_at,
+  updated_at: list.updated_at,
+});
+
+// Normalize Card object to match @/types
+const normalizeCard = (card: any): Card => ({
+  id: card.id,
+  list: card.list,
+  title: card.title,
+  description: card.description ?? undefined,
+  budget: card.budget,
+  people_number: card.people_number,
+  tags: card.tags,
+  due_date: card.due_date ?? undefined,
+  assigned_members: card.assigned_members,
+  subtasks: card.subtasks,
+  attachments: card.attachments,
+  location: card.location ?? undefined,
+  position: card.position,
+  created_at: card.created_at,
+  updated_at: card.updated_at,
+  category: card.category,
+  expense_id: card.expense_id,
+});
 
 interface DashboardStats {
   totalBoards: number;
@@ -23,7 +87,17 @@ export default function DashboardPage() {
   const { user } = useSession();
   const { data: boards = [], isLoading, error } = useGetBoards();
   const inviteUserMutation = useInviteUser();
-  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'planning' | 'completed'>('all');
+  const [sortBy, setSortBy] = useState<'recent' | 'title' | 'budget' | 'date'>('recent');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const router = useRouter();
+
+  // Normalize all boards
+  const normalizedBoards = boards.map(normalizeBoard);
+
   // Initialize stats with useMemo to prevent object recreation
   const initialStats: DashboardStats = useMemo(() => ({
     totalBoards: 0,
@@ -36,17 +110,11 @@ export default function DashboardPage() {
 
   const [stats, setStats] = useState<DashboardStats>(initialStats);
   const [recentBoards, setRecentBoards] = useState<Board[]>([]);
-  const [upcomingTasks, setUpcomingTasks] = useState<
-    { id: number; title: string; board: string; dueDate: string }[]
-  >([]);
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [searchTerm, setSearchTerm] = useState(''); // FIXED: Added search
+  const [upcomingTasks, setUpcomingTasks] = useState<{ id: number; title: string; board: string; dueDate: string }[]>([]);
 
   // Helper function to extract first name from full name or use first_name
   const getFirstName = (userData: any) => {
     if (!userData) return 'User';
-    // Prefer first_name if available, otherwise split full name
     return userData.first_name || (userData.name ? userData.name.split(' ')[0] : 'User');
   };
 
@@ -70,10 +138,10 @@ export default function DashboardPage() {
 
   // Type guard to ensure board is valid
   const isValidBoard = (board: any): board is Board => {
-    return board && 
-           typeof board === 'object' && 
-           'id' in board && 
-           'title' in board && 
+    return board &&
+           typeof board === 'object' &&
+           'id' in board &&
+           'title' in board &&
            'status' in board &&
            'created_at' in board;
   };
@@ -84,18 +152,16 @@ export default function DashboardPage() {
       console.error('Dashboard data loading error:', error);
       toast.error('Failed to load dashboard data');
     }
-  }, [error]); // Only depend on error
+  }, [error]);
 
   // Calculate stats when boards data changes
   useEffect(() => {
-    // Add safety checks to prevent crashes with invalid data
-    if (!Array.isArray(boards)) {
-      console.log('Boards data is not available or invalid:', boards);
+    if (!Array.isArray(normalizedBoards)) {
+      console.log('Boards data is not available or invalid:', normalizedBoards);
       return;
     }
 
-    // Filter to ensure we only work with valid boards
-    const validBoards = boards.filter(isValidBoard);
+    const validBoards = normalizedBoards.filter(isValidBoard);
 
     if (validBoards.length > 0) {
       try {
@@ -108,7 +174,6 @@ export default function DashboardPage() {
           }, 0),
           completedTasks: validBoards.reduce(
             (sum, b) => {
-              // Handle empty lists array properly
               if (!b.lists || !Array.isArray(b.lists) || b.lists.length === 0) return sum;
               return sum + b.lists.reduce(
                 (s, l) => {
@@ -121,7 +186,6 @@ export default function DashboardPage() {
             0
           ),
           upcomingTasks: validBoards.flatMap((b) => {
-            // Handle empty lists array properly
             if (!b.lists || !Array.isArray(b.lists) || b.lists.length === 0) return [];
             return b.lists.flatMap((l) => {
               if (!l?.cards || !Array.isArray(l.cards)) return [];
@@ -137,21 +201,20 @@ export default function DashboardPage() {
             }))
           ).length,
         };
-        
+
         setStats(calculatedStats);
-        
+
         const sortedBoards = [...validBoards]
           .sort((a, b) => {
             const dateA = new Date(a.created_at).getTime();
             const dateB = new Date(b.created_at).getTime();
             return dateB - dateA;
           });
-        
+
         setRecentBoards(sortedBoards.slice(0, 3));
-        
+
         const tasks = validBoards
           .flatMap((b) => {
-            // Handle empty lists array properly
             if (!b.lists || !Array.isArray(b.lists) || b.lists.length === 0 || !b.title) return [];
             return b.lists.flatMap((l) => {
               if (!l?.cards || !Array.isArray(l.cards)) return [];
@@ -169,23 +232,21 @@ export default function DashboardPage() {
             (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
           )
           .slice(0, 3);
-        
+
         setUpcomingTasks(tasks);
       } catch (statsError) {
         console.error('Error calculating dashboard stats:', statsError);
         toast.error('Error processing dashboard data');
-        // Reset to initial state on error
         setStats(initialStats);
         setRecentBoards([]);
         setUpcomingTasks([]);
       }
     } else {
-      // Reset stats when no boards - use the memoized initial stats
       setStats(initialStats);
       setRecentBoards([]);
       setUpcomingTasks([]);
     }
-  }, [boards, initialStats]); // Include initialStats in dependencies
+  }, [normalizedBoards, initialStats]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -200,34 +261,11 @@ export default function DashboardPage() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    if (isNaN(amount) || amount === null || amount === undefined) {
-      return '$0';
-    }
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch {
-      return 'N/A';
-    }
-  };
-
   const calculateProgress = (board: Board) => {
     if (!board.lists || !Array.isArray(board.lists) || board.lists.length === 0) {
       return 0;
     }
-    
+
     const total = board.lists.reduce(
       (sum: number, list: any) => {
         if (!list || !list.cards || !Array.isArray(list.cards)) return sum;
@@ -235,9 +273,9 @@ export default function DashboardPage() {
       },
       0
     );
-    
+
     if (total === 0) return 0;
-    
+
     const completed = board.lists
       .filter((list: any) => list?.title?.toLowerCase().includes('completed'))
       .reduce(
@@ -247,11 +285,11 @@ export default function DashboardPage() {
         },
         0
       );
-    
+
     return Math.round((completed / total) * 100);
   };
 
-  // Filter recent boards by search (FIXED: Added search to dashboard)
+  // Filter recent boards by search
   const filteredRecentBoards = recentBoards.filter((board) => {
     return !searchTerm || board.title?.toLowerCase().includes(searchTerm.toLowerCase()) || board.description?.toLowerCase().includes(searchTerm.toLowerCase());
   });
@@ -314,8 +352,8 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
-      
-      {/* Search Bar (FIXED: Added) */}
+
+      {/* Search Bar */}
       <div className="relative">
         <Search className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         <Input
@@ -325,7 +363,7 @@ export default function DashboardPage() {
           className="pl-10"
         />
       </div>
-      
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
@@ -395,132 +433,23 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Boards */}
-        <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Recent Boards</h2>
-                <Link href="/boards" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium">
-                  View all →
-                </Link>
-              </div>
-            </div>
-            <div className="p-6 space-y-4">
-              {filteredRecentBoards.length > 0 ? ( // FIXED: Use filtered
-                filteredRecentBoards.map((board) => (
-                  <Link key={board.id} href={`/boards/${board.id}`}>
-                    <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-gray-800">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">{board.title || 'Untitled Board'}</h3>
-                            <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(board.status || 'planning')}`}>
-                              {board.status || 'planning'}
-                            </span>
-                          </div>
-                          <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{board.description || 'No description'}</p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                            <div className="flex items-center gap-1">
-                              <CreditCard className="h-4 w-4" />
-                              {formatCurrency(parseFloat(board.budget || '0'))}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Users className="h-4 w-4" />
-                              {board.members?.length || 0} members
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              {formatDate(board.start_date)} - {formatDate(board.end_date)}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right ml-4">
-                          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{calculateProgress(board)}%</div>
-                          <div className="w-16 bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-1">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full transition-all"
-                              style={{ width: `${calculateProgress(board)}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-gray-300 dark:text-gray-500 mx-auto mb-3" />
-                  <p className="text-gray-500 dark:text-gray-400 mb-4">No boards yet</p>
-                  <Link href="/boards?create=true">
-                    <Button className="inline-flex items-center gap-2">
-                      <Plus className="h-5 w-5" />
-                      Create Your First Board
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        
-        {/* Upcoming Tasks */}
+        <RecentBoards
+          boards={normalizedBoards}
+          recentBoards={filteredRecentBoards}
+          getStatusColor={getStatusColor}
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+          calculateProgress={calculateProgress}
+        />
+
+        {/* Upcoming Tasks and Quick Actions */}
         <div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Upcoming Tasks</h2>
-            </div>
-            <div className="p-6 space-y-4">
-              {upcomingTasks.length > 0 ? (
-                upcomingTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors bg-white dark:bg-gray-800"
-                  >
-                    <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full flex-shrink-0">
-                      <CheckSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">{task.title}</p>
-                      <p className="text-gray-600 dark:text-gray-300 text-xs mt-1">{task.board}</p>
-                      <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">Due {formatDate(task.dueDate)}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <CheckSquare className="h-12 w-12 text-gray-300 dark:text-gray-500 mx-auto mb-3" />
-                  <p className="text-gray-500 dark:text-gray-400">No upcoming tasks</p>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Quick Actions */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 mt-6">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Quick Actions</h2>
-            </div>
-            <div className="p-6 space-y-3">
-              <Link href="/boards?create=true">
-                <Button variant="outline" className="w-full text-left flex items-center gap-3">
-                  <Plus className="h-5 w-5 text-blue-600" />
-                  <span className="font-medium text-gray-900 dark:text-gray-100">Create New Board</span>
-                </Button>
-              </Link>
-              <Button 
-                variant="outline" 
-                className="w-full text-left flex items-center gap-3"
-                onClick={() => setIsInviteModalOpen(true)}
-              >
-                <Users className="h-5 w-5 text-purple-600" />
-                <span className="font-medium text-gray-900 dark:text-gray-100">Invite Team Members</span>
-              </Button>
-            </div>
-          </div>
+          <UpcomingTasks upcomingTasks={upcomingTasks} formatDate={formatDate} />
+          <QuickActions setIsInviteModalOpen={setIsInviteModalOpen} />
         </div>
       </div>
 
@@ -540,8 +469,8 @@ export default function DashboardPage() {
               <Button type="button" variant="outline" onClick={() => { setIsInviteModalOpen(false); setInviteEmail(''); }}>
                 Cancel
               </Button>
-              <Button 
-                onClick={handleInviteSubmit} 
+              <Button
+                onClick={handleInviteSubmit}
                 disabled={inviteUserMutation.isPending || !inviteEmail.trim()}
               >
                 {inviteUserMutation.isPending ? 'Sending...' : 'Send Invite'}
