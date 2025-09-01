@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useCreateCard, useUpdateCard, useCreateLocation, useUpdateLocation } from './hooks';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { Card as CardType } from '@/types'; // Import type
 
 const cardSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -84,6 +85,12 @@ export default function CardForm({ boardId, listId, onSuccess, initialData }: Ca
     const subtasks = getValues('subtasks') || [];
     setValue('subtasks', [...subtasks, { title: subtaskInput, completed: false }]);
     setSubtaskInput('');
+  };
+
+  const toggleSubtask = (index: number, checked: boolean) => {
+    const subtasks = [...(getValues('subtasks') || [])];
+    subtasks[index].completed = checked;
+    setValue('subtasks', subtasks);
   };
 
   const onSubmit: SubmitHandler<CardFormData> = (data) => {
@@ -171,11 +178,7 @@ export default function CardForm({ boardId, listId, onSuccess, initialData }: Ca
             <div className="space-y-2">
               {watch('subtasks')?.map((st, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <Checkbox className="border-gray-500" checked={st.completed} onCheckedChange={(checked) => {
-                    const subtasks = [...(watch('subtasks') || [])];
-                    subtasks[i].completed = !!checked;
-                    setValue('subtasks', subtasks);
-                  }} />
+                  <Checkbox className="border-gray-500" checked={st.completed} onCheckedChange={(checked) => toggleSubtask(i, !!checked)} />
                   <span className="text-gray-800">{st.title}</span>
                 </div>
               ))}
