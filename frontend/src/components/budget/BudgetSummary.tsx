@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { useBoardBudgetSummary, useGetBoard } from '@/features/boards/hooks';
 import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/utils';
 
 interface BudgetSummaryProps {
   boardId: number;
@@ -11,14 +12,6 @@ interface BudgetSummaryProps {
 const BudgetSummary: React.FC<BudgetSummaryProps> = memo(({ boardId, onAddExpense, onViewAll }) => {
   const { data: summary, isLoading: summaryLoading, error: summaryError } = useBoardBudgetSummary(boardId);
   const { data: board, isLoading: boardLoading, error: boardError } = useGetBoard(boardId);
-
-  const formatCurrency = React.useCallback((amount: string, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 2,
-    }).format(parseFloat(amount || '0'));
-  }, []);
 
   if (summaryLoading || boardLoading) return <div aria-live="polite">Loading budget summary...</div>;
   if (summaryError || boardError) {
