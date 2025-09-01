@@ -3,13 +3,71 @@ import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 import ListColumn from './ListColumn';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { useCreateList, useMoveCard, useGetBoard, useUpdateBoard, Board, List } from './hooks';
-import { toast } from 'sonner';
-import { ArrowLeft, Share2, Star, Calendar, CreditCard, Users, MapPin } from 'lucide-react';
+import { Plus, ArrowLeft, Share2, Star, Calendar, CreditCard, Users, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useUI } from '@/store/useUI';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { formatCurrency, formatDate } from '@/lib/utils';
+import { getHeaders, makeApiCall } from './hooks';
+import { tokenManager } from '../auth/hooks';
+import { useCreateList, useMoveCard, useGetBoard, useUpdateBoard } from './hooks';
+import { Board, List, Card } from '@/types';
+import { toast } from 'sonner';
+
+// Normalize Board object to match @/types
+const normalizeBoard = (board: any): Board => ({
+  id: board.id,
+  title: board.title,
+  description: board.description ?? undefined,
+  owner: board.owner,
+  members: board.members,
+  status: board.status,
+  budget: board.budget,
+  currency: board.currency,
+  start_date: board.start_date ?? undefined,
+  end_date: board.end_date ?? undefined,
+  is_favorite: board.is_favorite,
+  tags: board.tags,
+  cover_image: board.cover_image ?? undefined,
+  lists: board.lists?.map(normalizeList) || [],
+  created_at: board.created_at,
+  updated_at: board.updated_at,
+});
+
+// Normalize List object to match @/types
+const normalizeList = (list: any): List => ({
+  id: list.id,
+  board: list.board,
+  title: list.title,
+  color: list.color,
+  position: list.position,
+  cards: list.cards?.map(normalizeCard) || [],
+  created_at: list.created_at,
+  updated_at: list.updated_at,
+});
+
+// Normalize Card object to match @/types
+const normalizeCard = (card: any): Card => ({
+  id: card.id,
+  list: card.list,
+  title: card.title,
+  description: card.description ?? undefined,
+  budget: card.budget,
+  people_number: card.people_number,
+  tags: card.tags,
+  due_date: card.due_date ?? undefined,
+  assigned_members: card.assigned_members,
+  subtasks: card.subtasks,
+  attachments: card.attachments,
+  location: card.location ?? undefined,
+  position: card.position,
+  created_at: card.created_at,
+  updated_at: card.updated_at,
+  category: card.category,
+  expense_id: card.expense_id,
+});
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://travel-kanban.onrender.com';
 
 interface BoardViewProps {
   boardId: number;
@@ -24,7 +82,10 @@ export default function BoardView({ boardId }: BoardViewProps) {
   const router = useRouter();
   const { sidebarOpen } = useUI();
 
-  if (isLoading || !board) {
+  // Normalize the board data
+  const normalizedBoard = board ? normalizeBoard(board) : null;
+
+  if (isLoading || !normalizedBoard) {
     return <div>Loading board...</div>;
   }
 
@@ -39,7 +100,7 @@ export default function BoardView({ boardId }: BoardViewProps) {
     moveCard(
       { cardId, new_list_id: new_list_id !== old_list_id ? new_list_id : undefined, new_position, boardId },
       {
-        onError: (error) => toast.error('Failed to move card', { description: error.message }),
+        onError: (error: any) => toast.error('Failed to move card', { description: error.message }),
       }
     );
   };
@@ -48,27 +109,18 @@ export default function BoardView({ boardId }: BoardViewProps) {
     if (!newListTitle.trim()) return;
     createList({ title: newListTitle }, {
       onSuccess: () => setNewListTitle(''),
-      onError: (error) => toast.error('Failed to create list', { description: error.message }),
+      onError: (error: any) => toast.error('Failed to create list', { description: error.message }),
     });
   };
 
   const toggleFavorite = () => {
-    updateBoard({ boardId: board.id, data: { is_favorite: !board.is_favorite } });
+    updateBoard({ boardId: normalizedBoard.id, data: { is_favorite: !normalizedBoard.is_favorite } });
   };
 
   const handleStatusChange = (value: 'planning' | 'active' | 'completed') => {
-    updateBoard({ boardId: board.id, data: { status: value } }, {
+    updateBoard({ boardId: normalizedBoard.id, data: { status: value } }, {
       onSuccess: () => toast.success(`Status updated to ${value}`),
     });
-  };
-
-  const formatCurrency = (amount: string, currency: string) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: 0 }).format(parseFloat(amount));
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const getTotalBudget = (board: Board) => {
@@ -89,10 +141,21 @@ export default function BoardView({ boardId }: BoardViewProps) {
     return colors[tag.length % colors.length];
   };
 
-  const handleShare = (edit = false) => {
-    const url = `${window.location.origin}/boards/${board.id}?share=${edit ? 'edit' : 'read'}`;
-    navigator.clipboard.writeText(url);
-    toast.success('Share link copied to clipboard!');
+  const handleShare = async (edit = false) => {
+    try {
+      const res = (await makeApiCall(() =>
+        fetch(`${API_BASE_URL}/api/boards/${normalizedBoard.id}/share-token/?edit=${edit}`, {
+          method: 'POST',
+          headers: getHeaders(tokenManager.getAccessToken()),
+        })
+      )) as Response;
+      const { token } = (await res.json()) as { token: string };
+      const url = `${window.location.origin}/boards/${normalizedBoard.id}?share=${edit ? 'edit' : 'read'}&token=${token}`;
+      await navigator.clipboard.writeText(url);
+      toast.success('Share link copied to clipboard!');
+    } catch (error) {
+      toast.error('Failed to generate share link');
+    }
   };
 
   return (
@@ -107,17 +170,17 @@ export default function BoardView({ boardId }: BoardViewProps) {
               </button>
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-gray-900">{board.title}</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">{normalizedBoard.title}</h1>
                   <button onClick={toggleFavorite}>
-                    <Star className={`h-5 w-5 ${board.is_favorite ? 'text-yellow-400 fill-current' : 'text-gray-400'}`} />
+                    <Star className={`h-5 w-5 ${normalizedBoard.is_favorite ? 'text-yellow-400 fill-current' : 'text-gray-400'}`} />
                   </button>
                 </div>
-                <p className="text-gray-600 text-sm mt-1">{board.description}</p>
+                <p className="text-gray-600 text-sm mt-1">{normalizedBoard.description}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">  {/* Increased gap */}
-              <Select value={board.status} onValueChange={handleStatusChange}>
-                <SelectTrigger className="w-[120px] bg-gray-100 text-gray-900 border-gray-300">  {/* Contrast */}
+            <div className="flex items-center gap-4">
+              <Select value={normalizedBoard.status} onValueChange={handleStatusChange}>
+                <SelectTrigger className="w-[120px] bg-gray-100 text-gray-900 border-gray-300">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -134,37 +197,35 @@ export default function BoardView({ boardId }: BoardViewProps) {
                 <Share2 className="h-4 w-4" />
                 Share Editable
               </button>
-              {/* Removed Settings button */}
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-6 mt-4 text-sm text-gray-600">
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
-              <span>{formatDate(board.start_date)} - {formatDate(board.end_date)}</span>
+              <span>{formatDate(normalizedBoard.start_date)} - {formatDate(normalizedBoard.end_date)}</span>
             </div>
             <div className="flex items-center gap-1">
               <CreditCard className="h-4 w-4" />
-              <span>{formatCurrency(getTotalBudget(board), board.currency)} total budget</span>
+              <span>{formatCurrency(getTotalBudget(normalizedBoard), normalizedBoard.currency)} total budget</span>
             </div>
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
-              <span>{board.members.length} member{board.members.length !== 1 ? 's' : ''}</span>
+              <span>{normalizedBoard.members.length} member{normalizedBoard.members.length !== 1 ? 's' : ''}</span>
             </div>
             <div className="flex items-center gap-1">
               <MapPin className="h-4 w-4" />
-              <span>{board.lists.reduce((total, list) => total + list.cards.length, 0)} tasks</span>
+              <span>{normalizedBoard.lists.reduce((total, list) => total + list.cards.length, 0)} tasks</span>
             </div>
           </div>
-          {board.tags.length > 0 && (
+          {normalizedBoard.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
-              {board.tags.map((tag) => (
+              {normalizedBoard.tags.map((tag) => (
                 <span key={tag} className={`text-xs px-2 py-1 rounded-full ${getTagColor(tag)}`}>
                   {tag}
                 </span>
               ))}
             </div>
           )}
-          {/* Removed placeholder */}
         </div>
       </div>
 
@@ -172,7 +233,7 @@ export default function BoardView({ boardId }: BoardViewProps) {
       <div className={`max-w-7xl mx-auto p-6 transition-all duration-300 ${sidebarOpen ? 'ml-64 overflow-hidden' : ''}`}>
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className="flex gap-6 overflow-x-auto pb-6">
-            {board.lists.sort((a: List, b: List) => a.position - b.position).map((list: List) => (
+            {normalizedBoard.lists.sort((a: List, b: List) => a.position - b.position).map((list: List) => (
               <ListColumn key={list.id} list={list} boardId={boardId} />
             ))}
             <div className="flex-shrink-0 w-80">
