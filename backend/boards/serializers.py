@@ -1,4 +1,3 @@
-# boards/serializers.py
 from rest_framework import serializers
 from .models import Board, List, Card
 from users.serializers import UserSerializer
@@ -41,7 +40,7 @@ class BoardSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     members = UserSerializer(many=True, read_only=True)
     lists = ListSerializer(many=True, read_only=True)
-
+    
     # Explicitly defining fields with their correct types and constraints
     title = serializers.CharField(max_length=255)
     description = serializers.CharField(allow_blank=True, allow_null=True)
@@ -61,8 +60,6 @@ class BoardSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'owner', 'members', 'lists', 'created_at', 'updated_at']
 
     def validate_budget(self, value):
-        if value < 0:
-            raise serializers.ValidationError("Budget cannot be negative.")
         try:
             return float(value)
         except (TypeError, ValueError):
@@ -77,29 +74,35 @@ class BoardSerializer(serializers.ModelSerializer):
         if value and not value.startswith(('http://', 'https://')):
             raise serializers.ValidationError("Cover image must be a valid URL starting with http:// or https://, or leave it empty.")
         return value
-
+    
     def validate_tags(self, value):
         if not isinstance(value, list):
             raise serializers.ValidationError("Tags must be a list")
         return value
 
     def validate_start_date(self, value):
+        # The value is already a date object thanks to serializers.DateField
         if value < timezone.now().date():
             raise serializers.ValidationError("Start date cannot be in the past.")
         return value
 
     def validate_end_date(self, value):
+        # The value is already a date object thanks to serializers.DateField
         start_date_data = self.initial_data.get('start_date')
         if start_date_data:
             try:
+                # Convert the string from initial_data to a date object
                 start_date = datetime.strptime(start_date_data, '%Y-%m-%d').date()
                 if value < start_date:
                     raise serializers.ValidationError("End date must be after the start date.")
             except (ValueError, TypeError):
+                # Handle cases where start_date is not in the expected format
                 pass
-
+        
+        # Additional validation for end date to not be in the past
         if value < timezone.now().date():
-            raise serializers.ValidationError("End date cannot be in the past.")
+             raise serializers.ValidationError("End date cannot be in the past.")
+        
         return value
 
 class BoardMemberSerializer(serializers.Serializer):

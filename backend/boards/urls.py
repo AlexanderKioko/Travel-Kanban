@@ -5,7 +5,6 @@ urlpatterns = [
     # Board URLs
     path('', views.BoardListCreateView.as_view(), name='boards'),
     path('<int:pk>/', views.BoardDetailView.as_view(), name='board-detail'),
-    path('<int:pk>/share-token/', views.BoardShareTokenView.as_view(), name='board-share-token'),
     
     # Board Member Management
     path('<int:pk>/add-member/', views.BoardMemberAddView.as_view(), name='board-add-member'),
