@@ -1,15 +1,18 @@
 import { Draggable } from '@hello-pangea/dnd';
-import { CreditCard, Clock, MapPin, Tag } from 'lucide-react';
-import { Card } from './hooks';
+import { CreditCard, Clock, MapPin } from 'lucide-react';
+import { Card } from '@/types';  
+import { formatCurrency, formatDate } from '@/lib/utils';  
+import { useUpdateCard } from './hooks'; 
 
 interface CardItemProps {
   card: Card;
   index: number;
   boardId: number;
   listId: number;
+  onEdit: (card: Card) => void;
 }
 
-export default function CardItem({ card, index, boardId, listId }: CardItemProps) {
+export default function CardItem({ card, index, boardId, listId, onEdit }: CardItemProps) {
   const getTagColor = (tag: string) => {
     const colors = [
       'bg-blue-100 text-blue-800',
@@ -22,19 +25,6 @@ export default function CardItem({ card, index, boardId, listId }: CardItemProps
     return colors[tag.length % colors.length];
   };
 
-  const formatCurrency = (amount: string, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(parseFloat(amount));
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
   const isOverdue = (dueDate: string | null) => {
     if (!dueDate) return false;
     return new Date(dueDate) < new Date();
@@ -42,6 +32,11 @@ export default function CardItem({ card, index, boardId, listId }: CardItemProps
 
   const getCompletedSubtasks = (subtasks: { title: string; completed: boolean }[]) => {
     return subtasks.filter(subtask => subtask.completed).length;
+  };
+
+  // Make the card clickable to open edit modal
+  const handleClick = () => {
+    onEdit(card);
   };
 
   return (
@@ -52,6 +47,7 @@ export default function CardItem({ card, index, boardId, listId }: CardItemProps
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+          onClick={handleClick}  // Trigger edit on click
         >
           <h4 className="font-medium text-gray-900 text-sm mb-3">{card.title}</h4>
           {card.description && (
