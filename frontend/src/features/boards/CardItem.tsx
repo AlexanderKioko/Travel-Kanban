@@ -94,7 +94,7 @@ export default function CardItem({ card, index, boardId, listId }: CardItemProps
               {parseFloat(card.budget) > 0 && (
                 <div className="flex items-center gap-1 text-gray-600">
                   <CreditCard className="h-3 w-3" />
-                  <span>{formatCurrency(card.budget)}</span>  // Raw budget
+                  <span>{formatCurrency(card.budget)}</span>  
                 </div>
               )}
               {card.due_date && (
